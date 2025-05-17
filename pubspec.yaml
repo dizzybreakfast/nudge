@@ -33,9 +33,6 @@ flutter:
  assets:
  - assets/images/logo.png
  fonts:
-   - family: Barriecito
-     fonts:
-       - asset: assets/fonts/Barriecito-Regular.ttf
    - family: Inria Sans
      fonts:
        - asset: Assets/fonts/Inria_Sans/InriaSans-Regular.ttf

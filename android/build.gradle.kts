@@ -1,5 +1,5 @@
 plugins {
-    // id 'com.google.gms.google-services' version '4.4.2' apply false
+    id("com.google.gms.google-services") version "4.4.2" apply false
 }
 
 allprojects {
@@ -9,16 +9,13 @@ allprojects {
     }
 }
 
-rootProject.buildDir = "../build"
+rootProject.buildDir = file("../build")
 
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    buildDir = file("${rootProject.buildDir}/${project.name}")
+    evaluationDependsOn(":app")
 }
 
-subprojects {
-    project.evaluationDependsOn(":app")
-}
-
-tasks.register("clean", Delete::class) {
+tasks.register<Delete>("clean") {
     delete(rootProject.buildDir)
 }
