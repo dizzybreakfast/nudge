@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'widgets/loading_screen.dart';
 import '../services/database.dart';
 import '../models/account.dart';
+import 'package:nudge/dashboard_screen.dart';
 
 class AuthenticationScreen extends StatefulWidget {
   final VoidCallback? onSignedIn;
@@ -102,7 +103,11 @@ class AuthenticationScreenState extends State<AuthenticationScreen> {
       _retries = 0;
       _isLoading = false;
     });
-    widget.onSignedIn?.call();
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
+    }
   }
 
   void _showToast(String message) {
