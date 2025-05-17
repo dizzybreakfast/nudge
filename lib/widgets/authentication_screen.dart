@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'widgets/loading_screen.dart';
-import 'widgets/personal_island.dart';
-import 'widgets/app_settings_dialog.dart';
-import 'widgets/custom_bottom_nav_bar.dart';
-import 'authentication_screen.dart';
+import 'loading_screen.dart'; // Corrected path
+import 'personal_island.dart'; // Corrected path
+import 'app_settings_dialog.dart'; // Corrected path
+import 'custom_bottom_nav_bar.dart'; // Corrected path
+import '../authentication_screen.dart'; // Added import
 import '../services/database.dart';
 import '../models/account.dart';
 
