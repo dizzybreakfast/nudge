@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nudge/authentication_screen.dart'; // Add this import
+import 'package:nudge/authentication_screen.dart';
 
 void main() {
   runApp(const MyApp());

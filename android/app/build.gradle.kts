@@ -10,7 +10,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        ndkVersion = "25.1.8937393"
+        ndkVersion = "27.0.12077973"
         applicationId = "com.example.nudge"
         minSdk = 23
         targetSdk = 35
@@ -30,9 +30,9 @@ android {
     signingConfigs {
         create("release") {
             keyAlias = "release"
-            keyPassword = "nudge.app"
+            keyPassword = "Fire7610"
             storeFile = file("release-key.jks")
-            storePassword = "nudge.app"
+            storePassword = "Fire7610"
         }
     }
 
