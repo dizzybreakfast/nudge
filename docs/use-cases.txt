@@ -1,0 +1,97 @@
+Scheduler, Reminder, and Task Board Website - MVP Use Cases
+===========================================================
+
+1. User Registration & Login
+----------------------------
+Description: Allows users to create an account or log in to access their personal task board and schedule.
+Actors: New User, Registered User
+Flow:
+- User signs up with email/password or logs in.
+- User profile and tasks are stored securely.
+
+2. Create/Edit User Profile
+---------------------------
+Description: Enables users to edit their profile information (e.g., name, profile picture, timezone).
+Actors: Registered User
+Flow:
+- User updates personal information.
+- Settings are saved and applied to scheduling features.
+
+3. Add New Task
+---------------
+Description: User can create a new task with a title, description, due date, and optional category or label.
+Actors: Registered User
+Flow:
+- User clicks “Add Task”.
+- Fills in task details.
+- Task appears on task board and schedule.
+
+4. Edit/Delete Task
+-------------------
+Description: Allows users to modify or remove tasks.
+Actors: Registered User
+Flow:
+- User selects a task to edit or delete.
+- Changes are saved and reflected in real time.
+
+5. Set Reminders for Tasks
+--------------------------
+Description: Users can set reminders for specific tasks before their due dates.
+Actors: Registered User
+Flow:
+- User sets a reminder time (e.g., 1 hour before, 1 day before).
+- System sends a notification/email at the set time.
+
+6. Task Board (Kanban View)
+---------------------------
+Description: Visual board with columns like To Do, In Progress, and Done.
+Actors: Registered User
+Flow:
+- User drags tasks between columns to update status.
+- Board reflects task progress.
+
+7. Daily/Weekly Scheduler
+-------------------------
+Description: Calendar-style interface showing tasks by date and time.
+Actors: Registered User
+Flow:
+- Tasks are placed into a daily or weekly view.
+- User can move tasks around to reschedule.
+
+8. Mark Task as Completed
+-------------------------
+Description: Users can mark a task as done.
+Actors: Registered User
+Flow:
+- User clicks "Mark as Completed".
+- Task is moved to "Done" column or marked visually.
+
+9. Notifications & Reminders
+----------------------------
+Description: Sends timely reminders via email or in-app notification.
+Actors: System
+Flow:
+- System checks for upcoming tasks with reminders.
+- Sends notifications at scheduled times.
+
+10. Search and Filter Tasks
+---------------------------
+Description: Enables users to search or filter tasks by keyword, label, status, or due date.
+Actors: Registered User
+Flow:
+- User enters search or selects filter options.
+- Task board and schedule display relevant tasks.
+
+11. Feedback Collection
+-----------------------
+Description: Gathers user feedback to improve the system.
+Actors: Registered User
+Flow:
+- User fills out a short form or rating.
+- System collects responses for analysis.
+
+Optional: Dark Mode Toggle
+--------------------------
+Description: Provides a dark theme for better usability at night.
+Actors: Registered User
+Note: Aesthetic preference setting for user comfort.

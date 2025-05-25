@@ -12,7 +12,7 @@ android {
     defaultConfig {
         ndkVersion = "27.0.12077973"
         applicationId = "com.example.nudge"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "N.010.001"

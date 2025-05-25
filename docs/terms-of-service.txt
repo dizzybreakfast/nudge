@@ -1,0 +1,56 @@
+Terms of Service
+================
+
+Effective Date: April 11, 2025
+
+Welcome to Genza! By using our scheduler, reminder, and task board platform (A scheduler, reminder, task board website), you agree to the following Terms of Service.
+
+1. Acceptance of Terms
+-----------------------
+By creating an account or using the Service, you confirm that you are at least 13 years old and agree to be bound by these Terms, our Privacy Policy, and any applicable laws.
+
+2. User Responsibilities
+-------------------------
+- You agree to provide accurate information when registering and using the Service.
+- You are responsible for maintaining the confidentiality of your account credentials.
+- You agree not to use the Service for unlawful, harmful, or disruptive activities.
+
+3. Data Collection and Usage
+-----------------------------
+- We collect personal data such as your name, email address, timezone, and task-related inputs to provide the Service.
+- Data is collected solely for task scheduling, reminders, personalization, and improvement of the Service.
+- You have full control over your data, including access, correction, and deletion.
+
+4. GDPR and Data Privacy Act Compliance
+----------------------------------------
+- In accordance with the **General Data Protection Regulation (GDPR)** and the **Philippine Data Privacy Act of 2012**, we:
+  - Obtain your clear and affirmative consent before collecting personal data.
+  - Use your data only for specified and legitimate purposes.
+  - Protect your data with appropriate technical and organizational measures.
+  - Allow you to access, rectify, or request deletion of your personal data.
+  - Store data securely and retain it only for as long as necessary.
+  - Do not sell or share your data with third parties without your explicit consent, unless required by law.
+
+5. Reminders and Notifications
+-------------------------------
+- You may opt-in to receive reminders and notifications via email or in-app.
+- You may modify your preferences or unsubscribe at any time.
+
+6. Third-Party Services
+------------------------
+- The Service may link to or integrate with third-party services (e.g., calendar APIs or email providers). We are not responsible for their privacy practices.
+
+7. Account Termination
+-----------------------
+- You may delete your account at any time.
+- We may suspend or terminate your account if you violate these Terms or misuse the Service.
+
+8. Changes to Terms
+--------------------
+- We may update these Terms. You will be notified of significant changes.
+- Continued use of the Service after updates means you accept the new terms.
+
+9. Contact Us
+--------------
+If you have questions about these Terms or your data rights, contact us at: Genza@gmail.com
+

@@ -1,0 +1,79 @@
+Privacy Policy
+==============
+
+Effective Date: April 11, 2025
+
+Genza respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and protect your information in accordance with the **General Data Protection Regulation (GDPR)** and the **Data Privacy Act of 2012** of the Philippines.
+
+1. Information We Collect
+--------------------------
+When you use our service, we may collect the following types of personal information:
+
+- Name
+- Email address
+- Password (hashed and encrypted)
+- Timezone and language preference
+- Tasks, schedules, reminders, and board activity
+- Optional profile data (e.g., profile picture)
+
+2. How We Use Your Information
+-------------------------------
+We process your personal data to:
+
+- Provide access to your personalized scheduler, task board, and reminders
+- Send notifications or reminders as configured by you
+- Improve and personalize your experience
+- Ensure system security and prevent unauthorized access
+- Respond to your inquiries and support requests
+
+3. Legal Basis for Processing (GDPR)
+-------------------------------------
+We collect and process your data only when:
+
+- You give explicit consent by creating an account and using our service
+- It is necessary for the performance of a contract (i.e., enabling you to manage your tasks)
+- We have a legitimate interest to improve and secure the Service
+
+4. Your Rights
+---------------
+In compliance with GDPR and the Data Privacy Act, you have the right to:
+
+- Access the personal data we hold about you
+- Correct or update inaccurate data
+- Request deletion of your data (right to be forgotten)
+- Withdraw consent at any time
+- Object to or restrict processing of your data
+- File a complaint with a data protection authority (e.g., NPC in the Philippines or your local DPA under GDPR)
+
+5. Data Storage and Security
+-----------------------------
+- Your data is stored on secure servers with encryption and access controls.
+- We retain your information only for as long as necessary to provide our service or comply with legal obligations.
+
+6. Sharing and Disclosure
+--------------------------
+We do **not** sell, rent, or share your personal information with third parties unless:
+
+- Required by law
+- Necessary to provide our services (e.g., email notification provider)
+- You have explicitly authorized us to do so
+
+7. Cookies and Tracking
+------------------------
+We may use essential cookies to maintain your session. No tracking or advertising cookies are used in the MVP version of our service.
+
+8. Children’s Privacy
+----------------------
+The service is not intended for children under 13 years old. We do not knowingly collect personal data from children.
+
+9. Policy Updates
+------------------
+We may update this policy from time to time. If we make significant changes, you will be notified via email or within the application.
+
+10. Contact Us
+---------------
+If you have any questions, concerns, or requests regarding your privacy or this policy, contact us at:
+
+Email: [Insert Contact Email]  
+Address: [Baybay City]  
+

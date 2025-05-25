@@ -1,0 +1,15 @@
+looks of dashboard:
+    should contain calendar, and the task at the buttom of the calendar
+    then in the calendar it should be able to show the current task set by the user
+    the task components are: name, description, date of deadline, and scope of when the task should be done like a reminder when the user will work on the task like a time frame of like certain date before the deadline, as well as the ability to set time on when on that time frame should the user work on that.
+
+looks of add task:
+    should contain the input boxes for name, deadline ddescription reminder time frame and what time to work on that time frame.
+    
+current user accs:
+    eder.lezi: Eder_4270  
+    o.hara: Vega@01
+    do.ffy: Tenryubito@666
+    tra.falgar:Corazon@114433
+
+redeploy may 16

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nudge/authentication_screen.dart';
+import 'package:nudge/dashboard_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const AuthenticationScreen(), // Change this line
+      home: const DashboardScreen(), // Change this line
     );
   }
 }
