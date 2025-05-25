@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nudge/dashboard_screen.dart';
+import 'package:nudge/calendar_page.dart'; // Add this import
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Nudge',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const DashboardScreen(), // Change this line
+      home: const CalendarPage(), // Change this to CalendarPage
     );
   }
 }
