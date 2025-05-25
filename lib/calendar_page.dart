@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart'; // Add this import
+import 'task_board_screen.dart';
+
 
 class CalendarPage extends StatefulWidget { // Change to StatefulWidget
   const CalendarPage({super.key});
@@ -17,6 +19,19 @@ class _CalendarPageState extends State<CalendarPage> { // Add this class
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: Icon(Icons.view_kanban),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TaskBoardScreen()),
+              );
+            },
+          ),
+        ],
+
+
         title: const Text('Calendar'),
       ),
       body: TableCalendar(
