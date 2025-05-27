@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'models/task.dart'; // Make sure to import your Task model
+import 'services/database.dart'; // Make sure to import your DatabaseService
 
 class TaskBoardScreen extends StatefulWidget {
   const TaskBoardScreen({Key? key}) : super(key: key);
@@ -9,21 +11,19 @@ class TaskBoardScreen extends StatefulWidget {
 }
 
 class _TaskBoardScreenState extends State<TaskBoardScreen> {
-  final Color backgroundColor = Color(0xFFF7F7FA);   // Soft off-white background
+  final Color backgroundColor = Color(0xFFF3F0FA);   // Soft off-white background
   final Color cardColor = Color(0xFFFDFDFE);         // Softer off-white for cards
   final Color borderColor = Color(0xFFE0E3E7);       // Light gray border
   final Color primaryColor = Color(0xFF22223B);      // Charcoal for text
-  final Color accentColor = Color(0xFF5BC0BE);       // Modern Teal
+  final Color accentColor = Color(0xFF673AB7);       // Deep Purple
   final Color textPrimary = Color(0xFF22223B);       // Charcoal
   final Color textSecondary = Color(0xFF6C757D);     // Cool Gray
-  final Color cardBackground = Color(0xFF5BC0BE).withOpacity(0.06); // even subtler accent
+  final Color cardBackground = Color(0xFF673AB7).withOpacity(0.06); // subtle accent
   final Color cardTextColor = Color(0xFF22223B);     // Charcoal
 
-  Map<String, List<String>> columns = {
-    'To Do': ['Task 1', 'Task 2'],
-    'In Progress': ['Task 3'],
-    'Done': ['Task 4'],
-  };
+  // Remove the old columns map!
+  // Use a fixed list of column names:
+  final List<String> columnNames = ['To Do', 'In Progress', 'Done'];
 
   final Map<String, bool> columnHighlight = {
     'To Do': false,
@@ -31,84 +31,148 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
     'Done': false,
   };
 
+  List<Task> tasks = [];
+
   void _showAddTaskDialog() {
-    String newTask = '';
+    final TextEditingController controller = TextEditingController();
+    DateTime? startDate;
+    DateTime? endDate;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: cardColor, // Use dark card color
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(
-            'Add New Task',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: primaryColor,
-              fontSize: 20,
-            ),
-          ),
-          content: TextField(
-            autofocus: true,
-            cursorColor: accentColor,
-            decoration: InputDecoration(
-              hintText: 'Enter task name',
-              hintStyle: TextStyle(color: textSecondary),
-              filled: true,
-              fillColor: backgroundColor,
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: borderColor),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: accentColor),
-              ),
-            ),
-            onChanged: (value) => newTask = value,
-            onSubmitted: (_) {
-              _addTask(newTask);
-              Navigator.of(context).pop();
-            },
-            style: TextStyle(color: primaryColor),
-          ),
-          actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel', style: TextStyle(color: textSecondary)),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentColor,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
-              onPressed: () {
-                _addTask(newTask);
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Add',
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: cardColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Text(
+                'Add New Task',
                 style: TextStyle(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                   color: primaryColor,
+                  fontSize: 20,
                 ),
               ),
-            ),
-          ],
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: controller,
+                      autofocus: true,
+                      cursorColor: accentColor,
+                      decoration: InputDecoration(
+                        hintText: 'Enter task name',
+                        hintStyle: TextStyle(color: textSecondary),
+                        filled: true,
+                        fillColor: backgroundColor,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: borderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: accentColor),
+                        ),
+                      ),
+                      style: TextStyle(color: primaryColor),
+                    ),
+                    const SizedBox(height: 12),
+                    ListTile(
+                      title: Text(
+                        startDate == null
+                            ? "Pick start date"
+                            : "Start: ${startDate!.toLocal().toString().split(' ')[0]}",
+                        style: TextStyle(color: primaryColor),
+                      ),
+                      trailing: Icon(Icons.calendar_today, color: accentColor),
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: startDate ?? DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (picked != null) setState(() {
+                          startDate = picked;
+                          if (endDate != null && endDate!.isBefore(startDate!)) {
+                            endDate = picked;
+                          }
+                        });
+                      },
+                    ),
+                    ListTile(
+                      title: Text(
+                        endDate == null
+                            ? "Pick end date"
+                            : "End: ${endDate!.toLocal().toString().split(' ')[0]}",
+                        style: TextStyle(color: primaryColor),
+                      ),
+                      trailing: Icon(Icons.calendar_today, color: accentColor),
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: endDate ?? startDate ?? DateTime.now(),
+                          firstDate: startDate ?? DateTime.now(),
+                          lastDate: DateTime(2100),
+                        );
+                        if (picked != null) setState(() => endDate = picked);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Cancel', style: TextStyle(color: textSecondary)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accentColor,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  onPressed: () async {
+                    if (controller.text.trim().isEmpty) return;
+                    final task = Task(
+                      title: controller.text.trim(),
+                      column: 'To Do',
+                      startDate: startDate,
+                      endDate: endDate,
+                    );
+                    await DatabaseService().insertTask(task);
+                    Navigator.of(context).pop(true); // Pass 'true' to indicate a new task was added
+                    _loadTasks();
+                  },
+                  child: Text(
+                    'Add',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
-  void _addTask(String task) {
-    if (task.trim().isEmpty) return;
+  Future<void> _loadTasks() async {
+    tasks = await DatabaseService().getTasks();
+    setState(() {});
+  }
 
-    setState(() {
-      columns['To Do']!.add(task.trim());
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
   }
 
   @override
@@ -141,32 +205,31 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: Row(
-          children: columns.keys.map((columnName) {
-            return buildColumn(columnName, columns[columnName]!);
+          children: columnNames.map((columnName) {
+            return buildColumn(columnName);
           }).toList(),
         ),
       ),
     );
   }
 
-  Widget buildColumn(String columnName, List<String> tasks) {
-    return DragTarget<String>(
+  Widget buildColumn(String columnName) {
+    final columnTasks = tasks.where((t) => t.column == columnName).toList();
+    return DragTarget<Task>(
       onWillAccept: (_) {
         setState(() => columnHighlight[columnName] = true);
         return true;
       },
       onLeave: (_) => setState(() => columnHighlight[columnName] = false),
-      onAccept: (task) {
-        setState(() {
-          columns.forEach((key, value) => value.remove(task));
-          columns[columnName]!.add(task);
-          columnHighlight[columnName] = false;
-        });
+      onAccept: (task) async {
+        print('Dragged task: ${task.title}, id: ${task.id}, from: ${task.column} to: $columnName');
+        await DatabaseService().updateTaskColumn(task.id!, columnName);
+        await _loadTasks();
+        setState(() => columnHighlight[columnName] = false);
       },
       builder: (context, candidateData, rejectedData) {
         return Container(
           width: 280,
-          height: 500,
           margin: EdgeInsets.symmetric(horizontal: 12),
           padding: EdgeInsets.all(18),
           decoration: BoxDecoration(
@@ -183,70 +246,90 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                columnName,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: primaryColor,
-                  letterSpacing: 0.5,
+          child: SizedBox(
+            height: 500, // <-- Add this line (or use MediaQuery for dynamic height)
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  columnName,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: primaryColor,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
-              SizedBox(height: 16),
-              Expanded(
-                child: ListView(
-                  physics: BouncingScrollPhysics(),
-                  shrinkWrap: true,
-                  children: tasks.map((task) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Draggable<String>(
-                        data: task,
-                        feedback: Material(
-                          color: Colors.transparent,
-                          child: Opacity(
-                            opacity: 0.85,
+                SizedBox(height: 16),
+                Expanded(
+                  child: Scrollbar(
+                    child: ListView(
+                      physics: BouncingScrollPhysics(),
+                      shrinkWrap: true,
+                      children: columnTasks.map((task) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Draggable<Task>(
+                            data: task,
+                            feedback: Material(
+                              color: Colors.transparent,
+                              child: Opacity(
+                                opacity: 0.85,
+                                child: buildTaskCard(task),
+                              ),
+                            ),
+                            childWhenDragging: Opacity(
+                              opacity: 0.3,
+                              child: buildTaskCard(task),
+                            ),
                             child: buildTaskCard(task),
                           ),
-                        ),
-                        childWhenDragging: Opacity(
-                          opacity: 0.3,
-                          child: buildTaskCard(task),
-                        ),
-                        child: buildTaskCard(task),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              )
-            ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                )
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget buildTaskCard(String task) {
+  Widget buildTaskCard(Task task) {
+    String dateText = '';
+    if (task.startDate != null && task.endDate != null) {
+      dateText =
+      "From: ${task.startDate is DateTime ? task.startDate!.toLocal().toString().split(' ')[0] : ''}  "
+          "To: ${task.endDate is DateTime ? task.endDate!.toLocal().toString().split(' ')[0] : ''}";
+    } else if (task.startDate != null) {
+      dateText = "Date: ${task.startDate is DateTime ? task.startDate!.toLocal().toString().split(' ')[0] : ''}";
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: cardBackground,
         borderRadius: BorderRadius.circular(14),
         border: Border(
-          left: BorderSide(color: accentColor, width: 4), // Accent bar
+          left: BorderSide(color: accentColor, width: 4),
         ),
       ),
       child: ListTile(
         title: Text(
-          task,
+          task.title,
           style: TextStyle(
             color: cardTextColor,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
+        subtitle: dateText.isNotEmpty
+            ? Text(
+          dateText,
+          style: TextStyle(color: textSecondary, fontSize: 13),
+        )
+            : null,
         contentPadding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
         dense: true,
       ),

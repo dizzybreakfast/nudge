@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'task_board_screen.dart';
 import 'event.dart';
+import 'models/task.dart';
+import 'services/database.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -41,6 +43,12 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _loadTasksAsEvents();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _clearHighlight,
@@ -50,11 +58,14 @@ class _CalendarPageState extends State<CalendarPage> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.view_kanban),
-                onPressed: () {
-                  Navigator.push(
+                onPressed: () async {
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => TaskBoardScreen()),
                   );
+                  if (result == true) {
+                    await _loadTasksAsEvents(); // reload events if a task was added
+                  }
                 },
               ),
             ]
@@ -510,6 +521,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   start: _normalizeDate(start),
                   end: _normalizeDate(end),
                 );
+                _manualEvents.add(event); // <-- add to manual events
                 for (var date = event.start;
                 !date.isAfter(event.end);
                 date = date.add(const Duration(days: 1))) {
@@ -680,5 +692,44 @@ class _CalendarPageState extends State<CalendarPage> {
         ],
       ),
     );
+  }
+
+  final List<Event> _manualEvents = [];
+
+  Future<void> _loadTasksAsEvents() async {
+    final tasks = await DatabaseService().getTasks();
+    setState(() {
+      _events.clear();
+      // Add tasks from database
+      for (final task in tasks) {
+        if (task.startDate != null) {
+          final event = Event(
+            title: task.title,
+            description: '', // You can add a description field to Task if you want
+            start: DateTime(task.startDate!.year, task.startDate!.month, task.startDate!.day),
+            end: task.endDate != null
+                ? DateTime(task.endDate!.year, task.endDate!.month, task.endDate!.day)
+                : DateTime(task.startDate!.year, task.startDate!.month, task.startDate!.day),
+          );
+          for (var date = event.start;
+              !date.isAfter(event.end);
+              date = date.add(const Duration(days: 1))) {
+            final key = _normalizeDate(date);
+            _events.putIfAbsent(key, () => []);
+            if (!_events[key]!.contains(event)) _events[key]!.add(event);
+          }
+        }
+      }
+      // Add manual events
+      for (final event in _manualEvents) {
+        for (var date = event.start;
+            !date.isAfter(event.end);
+            date = date.add(const Duration(days: 1))) {
+          final key = _normalizeDate(date);
+          _events.putIfAbsent(key, () => []);
+          if (!_events[key]!.contains(event)) _events[key]!.add(event);
+        }
+      }
+    });
   }
 }
