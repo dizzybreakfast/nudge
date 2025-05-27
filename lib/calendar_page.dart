@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'task_board_screen.dart'; // Your existing import
 import 'event.dart';             // Your existing import for the Event class
-
+import 'pomodoro_page.dart';
 // --- THIS IS THE IMPORTANT IMPORT ---
 // Make sure this path is correct for where your notification_service.dart file is.
 // If it's directly in the 'lib' folder:
@@ -329,9 +329,9 @@ class _CalendarPageState extends State<CalendarPage> {
                         for (var date = originalEvent.start; !date.isAfter(originalEvent.end); date = date.add(const Duration(days: 1))) {
                           final key = _normalizeDate(date);
                           _events[key]?.removeWhere((e) =>
-                            e.title == originalEvent.title && // Using a simple comparison, consider a unique ID if available
-                            e.start == originalEvent.start &&
-                            e.end == originalEvent.end);
+                          e.title == originalEvent.title && // Using a simple comparison, consider a unique ID if available
+                              e.start == originalEvent.start &&
+                              e.end == originalEvent.end);
                           if (_events[key]?.isEmpty ?? false) {
                             _events.remove(key);
                           }
@@ -339,7 +339,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
                         // Add the updated event
                         for (var date = updatedEvent.start; !date.isAfter(updatedEvent.end); date = date.add(const Duration(days: 1))) {
-                           final key = _normalizeDate(date);
+                          final key = _normalizeDate(date);
                           _events.putIfAbsent(key, () => []);
                           // Ensure not to add duplicates if logic allows (e.g. if event could already exist)
                           if (!_events[key]!.any((e) => e.title == updatedEvent.title && e.start == updatedEvent.start && e.end == updatedEvent.end)) {
@@ -439,6 +439,16 @@ class _CalendarPageState extends State<CalendarPage> {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.timer), // Pomodoro Timer icon
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PomodoroPage()),
+              );
+            },
+          ),
+
         ],
       ),
       body: Column(
@@ -571,7 +581,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     });
                   },
                   child: Text(
-                      _showDailyDeadlinesOnly 
+                      _showDailyDeadlinesOnly
                           ? "Show Upcoming by Day" // MODIFIED Text
                           : "Show All Deadlines"), // MODIFIED Text
                 ),
@@ -600,7 +610,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   return _buildDailyDeadlineList(allUpcomingDeadlines);
                 } else {
                   final List<MapEntry<DateTime, List<Event>>>
-                      groupedSortedEvents = _getGroupedAndSortedDailyEvents();
+                  groupedSortedEvents = _getGroupedAndSortedDailyEvents();
                   if (groupedSortedEvents.isEmpty) {
                     return const Center(
                         child: Text("No current events to display."));
@@ -741,22 +751,22 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // _manualEvents and _loadTasksAsEvents are removed as they were part of the conflicting code
-  // and not fully integrated with the HEAD version. If task loading is needed,
-  // it should be re-integrated carefully.
-  // final List<Event> _manualEvents = [];
+// _manualEvents and _loadTasksAsEvents are removed as they were part of the conflicting code
+// and not fully integrated with the HEAD version. If task loading is needed,
+// it should be re-integrated carefully.
+// final List<Event> _manualEvents = [];
 
-  // Future<void> _loadTasksAsEvents() async {
-  //   // This method would need to be adapted if you use a DatabaseService
-  //   // For example, if you have a DatabaseService:
-  //   // final tasks = await DatabaseService().getTasks();
-  //   // print("Loaded tasks: ${tasks.map((t) => '${t.title} ${t.startDate} ${t.endDate}').toList()}");
-  //   setState(() {
-  //     _events.clear();
-  //     // Add tasks from database
-  //     // for (final task in tasks) { ... }
-  //     // Add manual events
-  //     // for (final event in _manualEvents) { ... }
-  //   });
-  // }
+// Future<void> _loadTasksAsEvents() async {
+//   // This method would need to be adapted if you use a DatabaseService
+//   // For example, if you have a DatabaseService:
+//   // final tasks = await DatabaseService().getTasks();
+//   // print("Loaded tasks: ${tasks.map((t) => '${t.title} ${t.startDate} ${t.endDate}').toList()}");
+//   setState(() {
+//     _events.clear();
+//     // Add tasks from database
+//     // for (final task in tasks) { ... }
+//     // Add manual events
+//     // for (final event in _manualEvents) { ... }
+//   });
+// }
 }
