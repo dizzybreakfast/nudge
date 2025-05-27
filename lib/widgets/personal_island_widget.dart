@@ -47,7 +47,6 @@ class _PersonalIslandWidgetState extends State<PersonalIslandWidget> {
               onChanged: (bool value) {
                 setState(() {
                   _keepScreenOn = value;
-                  // TODO: Implement keep screen on functionality
                 });
               },
             ),
@@ -57,7 +56,6 @@ class _PersonalIslandWidgetState extends State<PersonalIslandWidget> {
               onChanged: (bool value) {
                 setState(() {
                   _useLargeTexts = value;
-                  // TODO: Implement use large texts functionality
                 });
               },
             ),
