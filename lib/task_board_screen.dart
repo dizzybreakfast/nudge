@@ -326,13 +326,6 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
     final localizations = MaterialLocalizations.of(context);
 
     if (task.startDate != null && task.endDate != null) {
-<<<<<<< HEAD
-      dateText =
-      "From: ${task.startDate!.toLocal().toString().split(' ')[0]}  "
-          "To: ${task.endDate!.toLocal().toString().split(' ')[0]}";
-    } else if (task.startDate != null) {
-      dateText = "Date: ${task.startDate!.toLocal().toString().split(' ')[0]}";
-=======
       final String formattedStartDate = localizations.formatShortDate(task.startDate!);
       final String formattedEndDate = localizations.formatShortDate(task.endDate!);
       dateInfo = "Work on: $formattedStartDate\nDeadline: $formattedEndDate";
@@ -342,7 +335,6 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
     } else if (task.endDate != null) {
       final String formattedEndDate = localizations.formatShortDate(task.endDate!);
       dateInfo = "Deadline: $formattedEndDate";
->>>>>>> 0daa0c8618f6a9df11ab28981d2eb107029258ce
     }
 
     return Container(
@@ -359,41 +351,6 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
             blurRadius: 3,
             offset: const Offset(0, 2), // changes position of shadow
           ),
-<<<<<<< HEAD
-        ),
-        subtitle: dateText.isNotEmpty
-            ? Text(
-          dateText,
-          style: TextStyle(color: textSecondary, fontSize: 13),
-        )
-            : null,
-        contentPadding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-        dense: true,
-        onTap: () async {
-          final confirm = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text('Delete Task'),
-              content: Text('Are you sure you want to delete this task?'),
-              actions: [
-                TextButton(
-                  child: Text('Cancel'),
-                  onPressed: () => Navigator.of(context).pop(false),
-                ),
-                TextButton(
-                  child: Text('Delete', style: TextStyle(color: Colors.red)),
-                  onPressed: () => Navigator.of(context).pop(true),
-                ),
-              ],
-            ),
-          );
-          if (confirm == true) {
-            await DatabaseService().deleteTask(task.id!);
-            _tasksChanged = true;
-            await _loadTasks();
-          }
-        },
-=======
         ],
       ),
       child: Column(
@@ -419,7 +376,6 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
             ),
           ],
         ],
->>>>>>> 0daa0c8618f6a9df11ab28981d2eb107029258ce
       ),
     );
   }

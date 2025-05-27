@@ -45,6 +45,48 @@ class _CalendarPageState extends State<CalendarPage> {
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+    _loadTasksFromDb(); // Added call to load tasks
+  }
+
+  // Added method to load tasks from the database
+  Future<void> _loadTasksFromDb() async {
+    final tasks = await DatabaseService().getTasks();
+    final Map<DateTime, List<Event>> loadedEvents = {};
+    for (var task in tasks) {
+      if (task.startDate != null && task.endDate != null) {
+        final event = Event(
+          title: task.title,
+          start: task.startDate!,
+          end: task.endDate!,
+        );
+        for (var date = event.start; !date.isAfter(event.end); date = date.add(const Duration(days: 1))) {
+          final key = _normalizeDate(date);
+          loadedEvents.putIfAbsent(key, () => []);
+          // Avoid adding duplicate events if a task somehow maps to an already existing event in memory (e.g. from a previous session if not cleared)
+          if (!loadedEvents[key]!.any((e) => e.title == event.title && e.start == event.start && e.end == event.end)) {
+            loadedEvents[key]!.add(event);
+          }
+        }
+      } else if (task.endDate != null) { // Handle tasks that might only have an end date (as deadlines)
+        final event = Event(
+          title: task.title,
+          start: task.endDate!, // Treat deadline as a single-day event starting and ending on endDate
+          end: task.endDate!,
+        );
+        final key = _normalizeDate(event.start);
+        loadedEvents.putIfAbsent(key, () => []);
+        if (!loadedEvents[key]!.any((e) => e.title == event.title && e.start == event.start && e.end == event.end)) {
+          loadedEvents[key]!.add(event);
+        }
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _events = loadedEvents;
+        // Optionally, if you want to clear any highlights or selected event from a previous state:
+        // _clearHighlight();
+      });
+    }
   }
 
   @override
