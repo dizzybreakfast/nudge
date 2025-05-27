@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-<<<<<<< HEAD
 import 'task_board_screen.dart'; // Your existing import
 import 'event.dart';             // Your existing import for the Event class
 
@@ -16,13 +15,6 @@ import 'notification_service.dart';
 // import 'package:your_project_name/notification_service.dart';
 // import 'package:your_project_name/services/notification_service.dart';
 // --- END OF IMPORTANT IMPORT ---
-
-=======
-import 'task_board_screen.dart';
-import 'event.dart';
-import 'models/task.dart';
-import 'services/database.dart';
->>>>>>> d8714224393271f58169bb0452a1b073eaee647f
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -60,6 +52,7 @@ class _CalendarPageState extends State<CalendarPage> {
     super.initState();
     _selectedDay = _focusedDay;
     // You might load existing events here from storage if needed
+    // _loadTasksAsEvents(); // If you have this method and want to load tasks
   }
 
   @override
@@ -85,7 +78,6 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
-<<<<<<< HEAD
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
@@ -102,7 +94,7 @@ class _CalendarPageState extends State<CalendarPage> {
     _descriptionController.clear();
     _eventStartDate = _selectedDay ?? DateTime.now();
     _eventEndDate = _selectedDay ?? DateTime.now();
-    final bool isNewEvent = true; // Flag for new event
+    // final bool isNewEvent = true; // Flag for new event - removed as it's unused
 
     showDialog(
       context: context,
@@ -118,71 +110,6 @@ class _CalendarPageState extends State<CalendarPage> {
                     TextField(
                       controller: _titleController,
                       decoration: const InputDecoration(hintText: "Event Title"),
-=======
-  @override
-  void initState() {
-    super.initState();
-    _loadTasksAsEvents();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _clearHighlight,
-      child: Scaffold(
-        appBar: AppBar(
-            title: const Text("Nudge"),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.view_kanban),
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => TaskBoardScreen()),
-                  );
-                  if (result == true) {
-                    await _loadTasksAsEvents(); // reload events if a task was added
-                  }
-                },
-              ),
-            ]
-        ),
-        body: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TableCalendar<Event>(
-                  firstDay: DateTime(2020),
-                  lastDay: DateTime(2030),
-                  focusedDay: _focusedDay,
-                  calendarFormat: _calendarFormat,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  eventLoader: (day) => _events[_normalizeDate(day)] ?? [],
-                  rowHeight: 52,
-                  daysOfWeekHeight: 40,
-                  headerStyle: const HeaderStyle(
-                    formatButtonVisible: true,
-                    titleCentered: true,
-                    formatButtonShowsNext: false,
-                    headerPadding: EdgeInsets.symmetric(vertical: 8.0),
-                    formatButtonDecoration: BoxDecoration(
-                      color: Colors.deepPurple,
-                      borderRadius: BorderRadius.all(Radius.circular(12.0)),
->>>>>>> d8714224393271f58169bb0452a1b073eaee647f
                     ),
                     TextField(
                       controller: _descriptionController,
@@ -198,7 +125,7 @@ class _CalendarPageState extends State<CalendarPage> {
                           child: const Text("Select Start Date"),
                           onPressed: () async {
                             final DateTime? picked = await showDatePicker(
-                              context: stfContext,
+                              context: stfContext, // Use StatefulBuilder's context for dialogs within dialog
                               initialDate: _eventStartDate ?? DateTime.now(),
                               firstDate: DateTime(2000),
                               lastDate: DateTime(2101),
@@ -224,7 +151,7 @@ class _CalendarPageState extends State<CalendarPage> {
                           child: const Text("Select End Date"),
                           onPressed: () async {
                             final DateTime? picked = await showDatePicker(
-                              context: stfContext,
+                              context: stfContext, // Use StatefulBuilder's context
                               initialDate: _eventEndDate ?? _eventStartDate ?? DateTime.now(),
                               firstDate: _eventStartDate ?? DateTime(2000), // End date cannot be before start date
                               lastDate: DateTime(2101),
@@ -321,11 +248,11 @@ class _CalendarPageState extends State<CalendarPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     TextField(
-                      controller: _titleController,
+                      controller: _titleController, // Make sure controller is assigned
                       decoration: const InputDecoration(hintText: "Event Title"),
                     ),
                     TextField(
-                      controller: _descriptionController,
+                      controller: _descriptionController, // Make sure controller is assigned
                       decoration: const InputDecoration(hintText: "Description (Optional)"),
                       maxLines: 3,
                     ),
@@ -393,62 +320,45 @@ class _CalendarPageState extends State<CalendarPage> {
                         description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
                         start: _eventStartDate!,
                         end: _eventEndDate!,
-                        // If your Event class has an ID that should persist, make sure to carry it over:
-                        // id: originalEvent.id, // Example, if Event has an 'id' property
                       );
 
                       setState(() {
-                        // Remove the old event first
-                        _events.forEach((key, dayEvents) {
-                          dayEvents.removeWhere((e) =>
-                          e.title == originalEvent.title &&
-                              e.start == originalEvent.start &&
-                              e.end == originalEvent.end); // Use a more robust ID if available
-                        });
-                        _events.removeWhere((key, dayEvents) => dayEvents.isEmpty); // Clean up empty day entries
-
+                        // Remove the original event from all dates it spanned
+                        for (var date = originalEvent.start; !date.isAfter(originalEvent.end); date = date.add(const Duration(days: 1))) {
+                          final key = _normalizeDate(date);
+                          _events[key]?.removeWhere((e) =>
+                            e.title == originalEvent.title && // Using a simple comparison, consider a unique ID if available
+                            e.start == originalEvent.start &&
+                            e.end == originalEvent.end);
+                          if (_events[key]?.isEmpty ?? false) {
+                            _events.remove(key);
+                          }
+                        }
 
                         // Add the updated event
                         for (var date = updatedEvent.start; !date.isAfter(updatedEvent.end); date = date.add(const Duration(days: 1))) {
-                          final key = _normalizeDate(date);
+                           final key = _normalizeDate(date);
                           _events.putIfAbsent(key, () => []);
-                          // Avoid adding duplicate event instances if logic allows
+                          // Ensure not to add duplicates if logic allows (e.g. if event could already exist)
                           if (!_events[key]!.any((e) => e.title == updatedEvent.title && e.start == updatedEvent.start && e.end == updatedEvent.end)) {
                             _events[key]!.add(updatedEvent);
                           }
                         }
 
                         // Update highlight if the selected event was the one edited
-                        if (_selectedEvent?.title == originalEvent.title && // simplistic comparison
-                            _selectedEvent?.start == originalEvent.start) {
+                        if (_selectedEvent?.title == originalEvent.title &&
+                            _selectedEvent?.start == originalEvent.start &&
+                            _selectedEvent?.end == originalEvent.end) {
                           _selectedEvent = updatedEvent;
                           _highlightStart = updatedEvent.start;
                           _highlightEnd = updatedEvent.end.add(const Duration(days:1));
                           // Keep the same color or re-assign if needed
                         } else {
-                          _clearHighlight(); // Or select the new event
-                          _selectedEvent = updatedEvent;
-                          _highlightStart = updatedEvent.start;
-                          _highlightEnd = updatedEvent.end.add(const Duration(days:1));
-                          // Potentially find the color index if it was stored with the event
+                          _clearHighlight(); // Or decide on other highlight behavior
                         }
                       });
 
                       // --- MODIFICATION FOR NOTIFICATION SERVICE ---
-                      // Reschedule notification for the updated event
-                      // First, if your Event class has a persistent ID, use that for cancellation.
-                      // Here, we use originalEvent.hashCode. If it changes due to content change,
-                      // old notifications might not be cancelled if using newEvent.hashCode directly for cancel.
-                      // It's better if NotificationService.cancel can take the specific IDs it generated.
-                      // For now, let's assume scheduleTaskNotifications handles cancelling old ones if ID matches.
-
-                      // Get the ID for the event. If Event has a persistent ID, use that.
-                      // Otherwise, use hashCode. If using hashCode, ensure it's the *original* event's
-                      // hashCode if you need to cancel a notification scheduled with that.
-                      // However, our NotificationService's scheduleTaskNotifications now takes an ID
-                      // and internally cancels notifications for that base ID + offset before scheduling.
-                      // So, using updatedEvent.hashCode should be fine here for the `id` param.
-
                       int eventIdForNotification = updatedEvent.hashCode;
                       // If your Event has a stable ID, use it:
                       // int eventIdForNotification = updatedEvent.id; // (if Event has an id property)
@@ -506,11 +416,12 @@ class _CalendarPageState extends State<CalendarPage> {
             eventLoader: _getEventsForDay,
             onDaySelected: _onDaySelected,
             onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
+              setState(() { // Ensure UI updates when page changes
+                _focusedDay = focusedDay;
+              });
             },
-            // ... inside your TableCalendar widget ...
             calendarBuilders: CalendarBuilders(
-              markerBuilder: (context, date, events) { // 'date' is defined here
+              markerBuilder: (context, date, events) {
                 if (events.isNotEmpty) {
                   return Positioned(
                     right: 1,
@@ -520,7 +431,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 }
                 return null;
               },
-              selectedBuilder: (context, date, focusedDay) { // 'date' is defined here
+              selectedBuilder: (context, date, focusedDay) {
                 return Container(
                   margin: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
@@ -534,7 +445,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   ),
                 );
               },
-              todayBuilder: (context, date, focusedDay) { // 'date' is defined here
+              todayBuilder: (context, date, focusedDay) {
                 return Container(
                   margin: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
@@ -548,54 +459,50 @@ class _CalendarPageState extends State<CalendarPage> {
                   ),
                 );
               },
-
-              // --- CORRECTED HIGHLIGHTING BUILDERS ---
-              rangeStartBuilder: (context, date, focusedDay) { // 'date' is a parameter here
+              rangeStartBuilder: (context, date, focusedDay) {
                 if (_highlightStart != null && _normalizeDate(date) == _normalizeDate(_highlightStart!)) {
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 4.0),
                     decoration: BoxDecoration(
                       color: _highlightColor,
-                      borderRadius: BorderRadius.horizontal(left: Radius.circular(50)),
+                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(50)),
                     ),
                     alignment: Alignment.center,
-                    child: Text('${date.day}', style: TextStyle(color: Colors.white)),
+                    child: Text('${date.day}', style: const TextStyle(color: Colors.white)),
                   );
                 }
-                return null; // Return null if the condition isn't met
+                return null;
               },
-              rangeEndBuilder: (context, date, focusedDay) { // 'date' is a parameter here
-                if (_highlightEnd != null && _normalizeDate(date) == _normalizeDate(_highlightEnd!.subtract(Duration(days:1)))) {
+              rangeEndBuilder: (context, date, focusedDay) {
+                if (_highlightEnd != null && _normalizeDate(date) == _normalizeDate(_highlightEnd!.subtract(const Duration(days:1)))) {
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 4.0),
                     decoration: BoxDecoration(
                       color: _highlightColor,
-                      borderRadius: BorderRadius.horizontal(right: Radius.circular(50)),
+                      borderRadius: const BorderRadius.horizontal(right: Radius.circular(50)),
                     ),
                     alignment: Alignment.center,
-                    child: Text('${date.day}', style: TextStyle(color: Colors.white)),
+                    child: Text('${date.day}', style: const TextStyle(color: Colors.white)),
                   );
                 }
-                return null; // Return null if the condition isn't met
+                return null;
               },
-              withinRangeBuilder: (context, date, focusedDay) { // 'date' is a parameter here
+              withinRangeBuilder: (context, date, focusedDay) {
                 if (_highlightStart != null && _highlightEnd != null &&
                     !isSameDay(date, _highlightStart!) &&
-                    !isSameDay(date, _highlightEnd!.subtract(Duration(days:1))) &&
+                    !isSameDay(date, _highlightEnd!.subtract(const Duration(days:1))) &&
                     date.isAfter(_highlightStart!) &&
-                    date.isBefore(_highlightEnd!.subtract(Duration(days:1)))) {
+                    date.isBefore(_highlightEnd!.subtract(const Duration(days:1)))) {
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 4.0),
                     decoration: BoxDecoration(color: _highlightColor),
                     alignment: Alignment.center,
-                    child: Text('${date.day}', style: TextStyle(color: Colors.white)),
+                    child: Text('${date.day}', style: const TextStyle(color: Colors.white)),
                   );
                 }
-                return null; // Return null if the condition isn't met
+                return null;
               },
-              // --- END OF CORRECTED HIGHLIGHTING BUILDERS ---
             ),
-// ...
             calendarStyle: const CalendarStyle(
               outsideDaysVisible: false,
             ),
@@ -609,8 +516,10 @@ class _CalendarPageState extends State<CalendarPage> {
           const SizedBox(height: 8.0),
           Expanded(
             child: ValueListenableBuilder<List<Event>>(
-              valueListenable: ValueNotifier(_getEventsForDay(_selectedDay ?? DateTime.now())), // Rebuilds on day selection
+              valueListenable: ValueNotifier(_getEventsForDay(_selectedDay ?? DateTime.now())),
               builder: (context, value, _) {
+                // It's better to fetch eventsForSelectedDay directly inside builder
+                // to ensure it's always up-to-date with _selectedDay
                 final eventsForSelectedDay = _getEventsForDay(_selectedDay ?? DateTime.now());
                 if (eventsForSelectedDay.isEmpty) {
                   return const Center(child: Text("No events for this day."));
@@ -630,15 +539,10 @@ class _CalendarPageState extends State<CalendarPage> {
                             _selectedEvent = event;
                             _highlightStart = event.start;
                             _highlightEnd = event.end.add(const Duration(days:1)); // for calendar range
-                            // Try to find the color previously used for this event
-                            // This part needs a more robust way to link events to colors if they should persist
-                            int foundColorIndex = -1;
-                            // This is a simplistic way, better to store color with event or have a map
-                            if (_events[_normalizeDate(event.start)]?.firstWhere((e) => e == event, orElse: () => Event(title: "", start: DateTime.now(), end: DateTime.now())) == event) {
-                              // This logic is flawed for finding the exact color used
-                              // For now, just cycle or pick based on selection
-                              _colorIndex = (_colorIndex + 1) % _highlightColors.length; // Simple cycle
-                            }
+                            // This logic for color finding is a bit complex and might not always find the original color.
+                            // A more robust way would be to store the color index with the event or use a map.
+                            // For now, we'll stick to cycling colors on selection.
+                            _colorIndex = (_colorIndex + 1) % _highlightColors.length;
                             _highlightColor = _highlightColors[_colorIndex];
 
                             _focusedDay = event.start; // Focus the calendar on the event's start day
@@ -652,25 +556,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     );
                   },
                 );
-<<<<<<< HEAD
               },
-=======
-                _manualEvents.add(event); // <-- add to manual events
-                for (var date = event.start;
-                !date.isAfter(event.end);
-                date = date.add(const Duration(days: 1))) {
-                  final key = _normalizeDate(date);
-                  _events.putIfAbsent(key, () => []);
-                  if (!_events[key]!.contains(event)) _events[key]!.add(event);
-                }
-                setState(() {});
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
-              foregroundColor: Colors.white,
->>>>>>> d8714224393271f58169bb0452a1b073eaee647f
             ),
           ),
         ],
@@ -687,7 +573,7 @@ class _CalendarPageState extends State<CalendarPage> {
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.blue[400],
+        color: Colors.blue[400], // Consider making this color dynamic or theme-based
       ),
       width: 16.0,
       height: 16.0,
@@ -703,43 +589,22 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  final List<Event> _manualEvents = [];
+  // _manualEvents and _loadTasksAsEvents are removed as they were part of the conflicting code
+  // and not fully integrated with the HEAD version. If task loading is needed,
+  // it should be re-integrated carefully.
+  // final List<Event> _manualEvents = [];
 
-  Future<void> _loadTasksAsEvents() async {
-    final tasks = await DatabaseService().getTasks();
-    print("Loaded tasks: ${tasks.map((t) => '${t.title} ${t.startDate} ${t.endDate}').toList()}"); // <-- Add this line
-    setState(() {
-      _events.clear();
-      // Add tasks from database
-      for (final task in tasks) {
-        if (task.startDate != null) {
-          final event = Event(
-            title: task.title,
-            description: '', // You can add a description field to Task if you want
-            start: DateTime(task.startDate!.year, task.startDate!.month, task.startDate!.day),
-            end: task.endDate != null
-                ? DateTime(task.endDate!.year, task.endDate!.month, task.endDate!.day)
-                : DateTime(task.startDate!.year, task.startDate!.month, task.startDate!.day),
-          );
-          for (var date = event.start;
-              !date.isAfter(event.end);
-              date = date.add(const Duration(days: 1))) {
-            final key = _normalizeDate(date);
-            _events.putIfAbsent(key, () => []);
-            if (!_events[key]!.contains(event)) _events[key]!.add(event);
-          }
-        }
-      }
-      // Add manual events
-      for (final event in _manualEvents) {
-        for (var date = event.start;
-            !date.isAfter(event.end);
-            date = date.add(const Duration(days: 1))) {
-          final key = _normalizeDate(date);
-          _events.putIfAbsent(key, () => []);
-          if (!_events[key]!.contains(event)) _events[key]!.add(event);
-        }
-      }
-    });
-  }
+  // Future<void> _loadTasksAsEvents() async {
+  //   // This method would need to be adapted if you use a DatabaseService
+  //   // For example, if you have a DatabaseService:
+  //   // final tasks = await DatabaseService().getTasks();
+  //   // print("Loaded tasks: ${tasks.map((t) => '${t.title} ${t.startDate} ${t.endDate}').toList()}");
+  //   setState(() {
+  //     _events.clear();
+  //     // Add tasks from database
+  //     // for (final task in tasks) { ... }
+  //     // Add manual events
+  //     // for (final event in _manualEvents) { ... }
+  //   });
+  // }
 }
