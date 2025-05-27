@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'models/task.dart'; // Make sure to import your Task model
-import 'services/database.dart'; // Make sure to import your DatabaseService
+import 'models/task.dart';
+import 'services/database.dart';
 
 class TaskBoardScreen extends StatefulWidget {
   const TaskBoardScreen({Key? key}) : super(key: key);
@@ -11,18 +11,16 @@ class TaskBoardScreen extends StatefulWidget {
 }
 
 class _TaskBoardScreenState extends State<TaskBoardScreen> {
-  final Color backgroundColor = Color(0xFFF3F0FA);   // Soft off-white background
-  final Color cardColor = Color(0xFFFDFDFE);         // Softer off-white for cards
-  final Color borderColor = Color(0xFFE0E3E7);       // Light gray border
-  final Color primaryColor = Color(0xFF22223B);      // Charcoal for text
-  final Color accentColor = Color(0xFF673AB7);       // Deep Purple
-  final Color textPrimary = Color(0xFF22223B);       // Charcoal
-  final Color textSecondary = Color(0xFF6C757D);     // Cool Gray
-  final Color cardBackground = Color(0xFF673AB7).withOpacity(0.06); // subtle accent
-  final Color cardTextColor = Color(0xFF22223B);     // Charcoal
+  final Color backgroundColor = Color(0xFFF3F0FA);
+  final Color cardColor = Color(0xFFFDFDFE);
+  final Color borderColor = Color(0xFFE0E3E7);
+  final Color primaryColor = Color(0xFF22223B);
+  final Color accentColor = Color(0xFF673AB7);
+  final Color textPrimary = Color(0xFF22223B);
+  final Color textSecondary = Color(0xFF6C757D);
+  final Color cardBackground = Color(0xFF673AB7).withOpacity(0.06);
+  final Color cardTextColor = Color(0xFF22223B);
 
-  // Remove the old columns map!
-  // Use a fixed list of column names:
   final List<String> columnNames = ['To Do', 'In Progress', 'Done'];
 
   final Map<String, bool> columnHighlight = {
@@ -32,6 +30,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
   };
 
   List<Task> tasks = [];
+  bool _tasksChanged = false;
 
   void _showAddTaskDialog() {
     final TextEditingController controller = TextEditingController();
@@ -138,21 +137,31 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                   ),
                   onPressed: () async {
                     if (controller.text.trim().isEmpty) return;
+                    // Find the max order in the column
+                    final columnTasks = tasks
+                        .where((t) => t.column == 'To Do')
+                        .toList();
+                    final lastOrder = columnTasks.isEmpty
+                        ? -1
+                        : columnTasks.map((t) => t.order).reduce((a, b) => a > b ? a : b);
+
                     final task = Task(
                       title: controller.text.trim(),
                       column: 'To Do',
                       startDate: startDate,
                       endDate: endDate,
+                      order: lastOrder + 1,
                     );
                     await DatabaseService().insertTask(task);
-                    Navigator.of(context).pop(true); // Pass 'true' to indicate a new task was added
+                    _tasksChanged = true;
+                    Navigator.of(context).pop(true);
                     _loadTasks();
                   },
                   child: Text(
                     'Add',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: primaryColor,
+                      color: Colors.white, // <-- Make text white
                     ),
                   ),
                 ),
@@ -177,53 +186,70 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: AppBar(
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pop(_tasksChanged);
+        return false;
+      },
+      child: Scaffold(
         backgroundColor: backgroundColor,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'Task Board',
-          style: TextStyle(
-            color: primaryColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-            letterSpacing: 0.5,
+        appBar: AppBar(
+          backgroundColor: backgroundColor,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            'Task Board',
+            style: TextStyle(
+              color: primaryColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+              letterSpacing: 0.5,
+            ),
           ),
+          iconTheme: IconThemeData(color: primaryColor),
         ),
-        iconTheme: IconThemeData(color: primaryColor),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: accentColor,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        onPressed: _showAddTaskDialog,
-        child: Icon(Icons.add, size: 28, color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-        child: Row(
-          children: columnNames.map((columnName) {
-            return buildColumn(columnName);
-          }).toList(),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: accentColor,
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          onPressed: _showAddTaskDialog,
+          child: Icon(Icons.add, size: 28, color: Colors.white),
+        ),
+        body: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          child: Row(
+            children: columnNames.map((columnName) {
+              return buildColumn(columnName);
+            }).toList(),
+          ),
         ),
       ),
     );
   }
 
   Widget buildColumn(String columnName) {
-    final columnTasks = tasks.where((t) => t.column == columnName).toList();
+    final columnTasks = tasks
+        .where((t) => t.column == columnName)
+        .toList()
+      ..sort((a, b) => a.order.compareTo(b.order));
+
     return DragTarget<Task>(
-      onWillAccept: (_) {
+      onWillAccept: (task) {
         setState(() => columnHighlight[columnName] = true);
-        return true;
+        return task != null && task.column != columnName;
       },
       onLeave: (_) => setState(() => columnHighlight[columnName] = false),
       onAccept: (task) async {
-        print('Dragged task: ${task.title}, id: ${task.id}, from: ${task.column} to: $columnName');
-        await DatabaseService().updateTaskColumn(task.id!, columnName);
+        final targetColumnTasks = tasks
+            .where((t) => t.column == columnName)
+            .toList();
+        final lastOrder = targetColumnTasks.isEmpty
+            ? -1
+            : targetColumnTasks.map((t) => t.order).reduce((a, b) => a > b ? a : b);
+
+        await DatabaseService().updateTaskColumnAndOrder(task.id!, columnName, lastOrder + 1);
+        _tasksChanged = true;
         await _loadTasks();
         setState(() => columnHighlight[columnName] = false);
       },
@@ -247,7 +273,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
             ],
           ),
           child: SizedBox(
-            height: 500, // <-- Add this line (or use MediaQuery for dynamic height)
+            height: 500,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -261,15 +287,14 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                   ),
                 ),
                 SizedBox(height: 16),
-                Expanded(
-                  child: Scrollbar(
-                    child: ListView(
-                      physics: BouncingScrollPhysics(),
-                      shrinkWrap: true,
-                      children: columnTasks.map((task) {
-                        return Padding(
+                Flexible(
+                  child: ListView(
+                    children: [
+                      for (final task in columnTasks)
+                        Padding(
+                          key: ValueKey(task.id),
                           padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Draggable<Task>(
+                          child: LongPressDraggable<Task>(
                             data: task,
                             feedback: Material(
                               color: Colors.transparent,
@@ -284,11 +309,10 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                             ),
                             child: buildTaskCard(task),
                           ),
-                        );
-                      }).toList(),
-                    ),
+                        ),
+                    ],
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -301,10 +325,10 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
     String dateText = '';
     if (task.startDate != null && task.endDate != null) {
       dateText =
-      "From: ${task.startDate is DateTime ? task.startDate!.toLocal().toString().split(' ')[0] : ''}  "
-          "To: ${task.endDate is DateTime ? task.endDate!.toLocal().toString().split(' ')[0] : ''}";
+      "From: ${task.startDate!.toLocal().toString().split(' ')[0]}  "
+          "To: ${task.endDate!.toLocal().toString().split(' ')[0]}";
     } else if (task.startDate != null) {
-      dateText = "Date: ${task.startDate is DateTime ? task.startDate!.toLocal().toString().split(' ')[0] : ''}";
+      dateText = "Date: ${task.startDate!.toLocal().toString().split(' ')[0]}";
     }
 
     return Container(
@@ -332,7 +356,43 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
             : null,
         contentPadding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
         dense: true,
+        onTap: () async {
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Delete Task'),
+              content: Text('Are you sure you want to delete this task?'),
+              actions: [
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () => Navigator.of(context).pop(false),
+                ),
+                TextButton(
+                  child: Text('Delete', style: TextStyle(color: Colors.red)),
+                  onPressed: () => Navigator.of(context).pop(true),
+                ),
+              ],
+            ),
+          );
+          if (confirm == true) {
+            await DatabaseService().deleteTask(task.id!);
+            _tasksChanged = true;
+            await _loadTasks();
+          }
+        },
       ),
     );
+  }
+
+  Future<void> _reorderTasks(List<Task> columnTasks, int oldIndex, int newIndex, String columnName) async {
+    if (newIndex > oldIndex) newIndex -= 1;
+    final task = columnTasks.removeAt(oldIndex);
+    columnTasks.insert(newIndex, task);
+
+    // Update order in DB for all tasks in this column
+    for (int i = 0; i < columnTasks.length; i++) {
+      await DatabaseService().updateTaskOrder(columnTasks[i].id!, i);
+    }
+    await _loadTasks();
   }
 }

@@ -64,7 +64,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     MaterialPageRoute(builder: (context) => TaskBoardScreen()),
                   );
                   if (result == true) {
-                    await _loadTasksAsEvents(); // reload events if a task was added
+                    await _loadTasksAsEvents();
                   }
                 },
               ),

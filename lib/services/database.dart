@@ -38,7 +38,8 @@ class DatabaseService {
         title TEXT NOT NULL,
         "column" TEXT NOT NULL,
         startDate TEXT,
-        endDate TEXT
+        endDate TEXT,
+        "order" INTEGER
       );
     ''');
   }
@@ -113,5 +114,37 @@ class DatabaseService {
     final db = await database;
     await db.update('tasks', {'column': newColumn},
         where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> deleteTask(int id) async {
+    final db = await _databaseService.database;
+    await db.delete(
+      'tasks',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> updateTaskOrder(int id, int order) async {
+    final db = await _databaseService.database;
+    await db.update(
+      'tasks',
+      {'order': order},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> updateTaskColumnAndOrder(int id, String newColumn, int newOrder) async {
+    final db = await _databaseService.database;
+    await db.update(
+      'tasks',
+      {
+        'column': newColumn,
+        'order': newOrder,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }
