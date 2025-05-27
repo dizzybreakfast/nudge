@@ -9,15 +9,26 @@ class TaskBoardScreen extends StatefulWidget {
 }
 
 class _TaskBoardScreenState extends State<TaskBoardScreen> {
-  final Color primaryColor = Color(0xFF3A5068);
-  final Color navyBlue = Color(0xFF1A237E); // Navy Blue
-  final Color backgroundColor = Color(0xFFF4F7F6);
-  final Color cardTextColor = Colors.white;
+  final Color backgroundColor = Color(0xFFF7F7FA);   // Soft off-white background
+  final Color cardColor = Color(0xFFFDFDFE);         // Softer off-white for cards
+  final Color borderColor = Color(0xFFE0E3E7);       // Light gray border
+  final Color primaryColor = Color(0xFF22223B);      // Charcoal for text
+  final Color accentColor = Color(0xFF5BC0BE);       // Modern Teal
+  final Color textPrimary = Color(0xFF22223B);       // Charcoal
+  final Color textSecondary = Color(0xFF6C757D);     // Cool Gray
+  final Color cardBackground = Color(0xFF5BC0BE).withOpacity(0.06); // even subtler accent
+  final Color cardTextColor = Color(0xFF22223B);     // Charcoal
 
   Map<String, List<String>> columns = {
     'To Do': ['Task 1', 'Task 2'],
     'In Progress': ['Task 3'],
     'Done': ['Task 4'],
+  };
+
+  final Map<String, bool> columnHighlight = {
+    'To Do': false,
+    'In Progress': false,
+    'Done': false,
   };
 
   void _showAddTaskDialog() {
@@ -27,9 +38,8 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: cardColor, // Use dark card color
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             'Add New Task',
             style: TextStyle(
@@ -40,19 +50,19 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
           ),
           content: TextField(
             autofocus: true,
-            cursorColor: primaryColor,
+            cursorColor: accentColor,
             decoration: InputDecoration(
               hintText: 'Enter task name',
-              hintStyle: TextStyle(color: primaryColor.withOpacity(0.5)),
+              hintStyle: TextStyle(color: textSecondary),
               filled: true,
               fillColor: backgroundColor,
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: primaryColor.withOpacity(0.5)),
+                borderSide: BorderSide(color: borderColor),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: primaryColor),
+                borderSide: BorderSide(color: accentColor),
               ),
             ),
             onChanged: (value) => newTask = value,
@@ -60,17 +70,17 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
               _addTask(newTask);
               Navigator.of(context).pop();
             },
-            style: TextStyle(color: Colors.black87),
+            style: TextStyle(color: primaryColor),
           ),
           actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel', style: TextStyle(color: primaryColor)),
+              child: Text('Cancel', style: TextStyle(color: textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
+                backgroundColor: accentColor,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -83,7 +93,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                 'Add',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: primaryColor,
                 ),
               ),
             ),
@@ -112,24 +122,24 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
         title: Text(
           'Task Board',
           style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w700,
-            fontSize: 26,
+            color: primaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
             letterSpacing: 0.5,
           ),
         ),
         iconTheme: IconThemeData(color: primaryColor),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: navyBlue,
-        elevation: 4,
+        backgroundColor: accentColor,
+        elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         onPressed: _showAddTaskDialog,
         child: Icon(Icons.add, size: 28, color: Colors.white),
       ),
       body: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: Row(
           children: columns.keys.map((columnName) {
             return buildColumn(columnName, columns[columnName]!);
@@ -140,45 +150,54 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
   }
 
   Widget buildColumn(String columnName, List<String> tasks) {
-    return Container(
-      width: 280,
-      margin: EdgeInsets.symmetric(horizontal: 14),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 4),
+    return DragTarget<String>(
+      onWillAccept: (_) {
+        setState(() => columnHighlight[columnName] = true);
+        return true;
+      },
+      onLeave: (_) => setState(() => columnHighlight[columnName] = false),
+      onAccept: (task) {
+        setState(() {
+          columns.forEach((key, value) => value.remove(task));
+          columns[columnName]!.add(task);
+          columnHighlight[columnName] = false;
+        });
+      },
+      builder: (context, candidateData, rejectedData) {
+        return Container(
+          width: 280,
+          height: 500,
+          margin: EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: columnHighlight[columnName]!
+                ? cardColor.withOpacity(0.95)
+                : cardColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: borderColor, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            columnName,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: primaryColor,
-              letterSpacing: 0.5,
-            ),
-          ),
-          SizedBox(height: 20),
-          Flexible(
-            child: DragTarget<String>(
-              onWillAccept: (_) => true,
-              onAccept: (task) {
-                setState(() {
-                  columns.forEach((key, value) => value.remove(task));
-                  columns[columnName]!.add(task);
-                });
-              },
-              builder: (context, candidateData, rejectedData) {
-                return ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                columnName,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: primaryColor,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              SizedBox(height: 16),
+              Expanded(
+                child: ListView(
                   physics: BouncingScrollPhysics(),
                   shrinkWrap: true,
                   children: tasks.map((task) {
@@ -193,63 +212,43 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                             child: buildTaskCard(task),
                           ),
                         ),
-                        childWhenDragging: Container(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 18),
-                          decoration: BoxDecoration(
-                            color: backgroundColor,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: primaryColor.withOpacity(0.3)),
-                          ),
-                          child: Text(
-                            task,
-                            style: TextStyle(
-                              color: primaryColor.withOpacity(0.5),
-                              fontSize: 16,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
+                        childWhenDragging: Opacity(
+                          opacity: 0.3,
+                          child: buildTaskCard(task),
                         ),
                         child: buildTaskCard(task),
                       ),
                     );
                   }).toList(),
-                );
-              },
-            ),
-          )
-        ],
-      ),
+                ),
+              )
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget buildTaskCard(String task) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          decoration: BoxDecoration(
-            color: navyBlue.withOpacity(0.7), // translucent navy blue
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: navyBlue.withOpacity(0.5),
-                blurRadius: 8,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Text(
-            task,
-            style: TextStyle(
-              color: cardTextColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBackground,
+        borderRadius: BorderRadius.circular(14),
+        border: Border(
+          left: BorderSide(color: accentColor, width: 4), // Accent bar
+        ),
+      ),
+      child: ListTile(
+        title: Text(
+          task,
+          style: TextStyle(
+            color: cardTextColor,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
+        contentPadding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        dense: true,
       ),
     );
   }
