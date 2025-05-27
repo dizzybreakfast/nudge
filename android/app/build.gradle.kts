@@ -10,7 +10,6 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        ndkVersion = "27.0.12077973"
         applicationId = "com.protoqor.nudge"
         minSdk = 24
         targetSdk = 35
@@ -18,21 +17,24 @@ android {
         versionName = "N1.0.1"
     }
 
+    compileOptions {
+        // Java 17 compatibility
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
+    }
+
+    // Kotlin JVM target
     kotlinOptions {
         jvmTarget = "17"
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
     signingConfigs {
         create("release") {
-            keyAlias = "nudge-key"
-            keyPassword = "Fire7610"
-            storeFile = file("release-key.jks")
-            storePassword = "Fire7610"
+            keyAlias = System.getenv("NUDGE_KEY_ALIAS") ?: "nudge-key"
+            keyPassword = System.getenv("NUDGE_KEY_PASSWORD") ?: "Fire7610"
+            storeFile = file(System.getenv("NUDGE_STORE_FILE") ?: "release-key.jks")
+            storePassword = System.getenv("NUDGE_STORE_PASSWORD") ?: "Fire7610"
         }
     }
 
@@ -43,7 +45,7 @@ android {
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                file("proguard-rules.pro")
+                "proguard-rules.pro"
             )
             ndk {
                 debugSymbolLevel = "SYMBOL_TABLE"
@@ -53,8 +55,8 @@ android {
 }
 
 dependencies {
-    // implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
-    // implementation("com.google.firebase:firebase-analytics")
+    implementation("androidx.core:core-ktx:1.12.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
 
 flutter {
