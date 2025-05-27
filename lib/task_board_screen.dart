@@ -322,31 +322,44 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
   }
 
   Widget buildTaskCard(Task task) {
-    String dateText = '';
+    String dateInfo = '';
+    final localizations = MaterialLocalizations.of(context);
+
     if (task.startDate != null && task.endDate != null) {
+<<<<<<< HEAD
       dateText =
       "From: ${task.startDate!.toLocal().toString().split(' ')[0]}  "
           "To: ${task.endDate!.toLocal().toString().split(' ')[0]}";
     } else if (task.startDate != null) {
       dateText = "Date: ${task.startDate!.toLocal().toString().split(' ')[0]}";
+=======
+      final String formattedStartDate = localizations.formatShortDate(task.startDate!);
+      final String formattedEndDate = localizations.formatShortDate(task.endDate!);
+      dateInfo = "Work on: $formattedStartDate\nDeadline: $formattedEndDate";
+    } else if (task.startDate != null) {
+      final String formattedStartDate = localizations.formatShortDate(task.startDate!);
+      dateInfo = "Work on: $formattedStartDate";
+    } else if (task.endDate != null) {
+      final String formattedEndDate = localizations.formatShortDate(task.endDate!);
+      dateInfo = "Deadline: $formattedEndDate";
+>>>>>>> 0daa0c8618f6a9df11ab28981d2eb107029258ce
     }
 
     return Container(
+      padding: const EdgeInsets.all(12.0),
+      margin: const EdgeInsets.symmetric(vertical: 6.0),
       decoration: BoxDecoration(
-        color: cardBackground,
-        borderRadius: BorderRadius.circular(14),
-        border: Border(
-          left: BorderSide(color: accentColor, width: 4),
-        ),
-      ),
-      child: ListTile(
-        title: Text(
-          task.title,
-          style: TextStyle(
-            color: cardTextColor,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+        color: cardColor, // Using the defined cardColor for background
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(color: borderColor.withOpacity(0.5), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 2), // changes position of shadow
           ),
+<<<<<<< HEAD
         ),
         subtitle: dateText.isNotEmpty
             ? Text(
@@ -380,6 +393,33 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
             await _loadTasks();
           }
         },
+=======
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            task.title,
+            style: TextStyle(
+              color: textPrimary, // Using defined textPrimary
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (dateInfo.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              dateInfo,
+              style: TextStyle(
+                color: textSecondary, // Using defined textSecondary
+                fontSize: 13,
+                height: 1.4, // Improves readability for multi-line text
+              ),
+            ),
+          ],
+        ],
+>>>>>>> 0daa0c8618f6a9df11ab28981d2eb107029258ce
       ),
     );
   }

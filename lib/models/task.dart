@@ -4,7 +4,7 @@ class Task {
   final String column;
   final DateTime? startDate;
   final DateTime? endDate;
-  final int order; 
+  final int order;
 
   Task({
     this.id,
@@ -12,7 +12,7 @@ class Task {
     required this.column,
     this.startDate,
     this.endDate,
-    required this.order, 
+    required this.order,
   });
 
   Map<String, dynamic> toMap() => {
@@ -21,7 +21,7 @@ class Task {
     'column': column,
     'startDate': startDate?.toIso8601String(),
     'endDate': endDate?.toIso8601String(),
-    'order': order, 
+    'order': order,
   };
 
   factory Task.fromMap(Map<String, dynamic> map) => Task(
@@ -34,6 +34,6 @@ class Task {
     endDate: map['endDate'] != null && map['endDate'] != ''
         ? DateTime.parse(map['endDate'])
         : null,
-    order: map['order'] ?? 0, 
+    order: map['order'] ?? 0,
   );
 }

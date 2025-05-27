@@ -1,3 +1,14 @@
+release N1.0.1
+bug fixes
+
+release N1.0.0:
+Default language - en-US
+First release for Testing
+Current Features:
+- Calendar
+- Dashboard
+- Task Board
+
 looks of dashboard:
     should contain calendar, and the task at the buttom of the calendar
     then in the calendar it should be able to show the current task set by the user
