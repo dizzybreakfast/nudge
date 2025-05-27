@@ -698,6 +698,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Future<void> _loadTasksAsEvents() async {
     final tasks = await DatabaseService().getTasks();
+    print("Loaded tasks: ${tasks.map((t) => '${t.title} ${t.startDate} ${t.endDate}').toList()}"); // <-- Add this line
     setState(() {
       _events.clear();
       // Add tasks from database

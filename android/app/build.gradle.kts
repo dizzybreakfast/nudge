@@ -6,16 +6,16 @@ plugins {
 }
 
 android {
-    namespace = "com.example.nudge"
+    namespace = "com.protoqor.nudge"
     compileSdk = 35
 
     defaultConfig {
         ndkVersion = "27.0.12077973"
-        applicationId = "com.example.nudge"
+        applicationId = "com.protoqor.nudge"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "N.010.001"
+        versionCode = 2
+        versionName = "N1.0.1"
     }
 
     kotlinOptions {
@@ -29,7 +29,7 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = "release"
+            keyAlias = "nudge-key"
             keyPassword = "Fire7610"
             storeFile = file("release-key.jks")
             storePassword = "Fire7610"
