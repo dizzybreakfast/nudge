@@ -47,6 +47,8 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime? _eventStartDate;
   DateTime? _eventEndDate;
 
+  bool _showDailyDeadlinesOnly = false; // New state for toggling view
+
   @override
   void initState() {
     super.initState();
@@ -195,7 +197,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         _clearHighlight();
                         _selectedEvent = event;
                         _highlightStart = event.start;
-                        _highlightEnd = event.end.add(const Duration(days:1)); // Adjust for exclusive end in range
+                        _highlightEnd = event.end; // MODIFIED: Use exact end date
                         _colorIndex = (_colorIndex + 1) % _highlightColors.length;
                         _highlightColor = _highlightColors[_colorIndex];
                       });
@@ -351,7 +353,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             _selectedEvent?.end == originalEvent.end) {
                           _selectedEvent = updatedEvent;
                           _highlightStart = updatedEvent.start;
-                          _highlightEnd = updatedEvent.end.add(const Duration(days:1));
+                          _highlightEnd = updatedEvent.end; // MODIFIED: Use exact end date
                           // Keep the same color or re-assign if needed
                         } else {
                           _clearHighlight(); // Or decide on other highlight behavior
@@ -387,6 +389,39 @@ class _CalendarPageState extends State<CalendarPage> {
         );
       },
     );
+  }
+
+
+  // New method to get events grouped by day and sorted by deadline within each day
+  List<MapEntry<DateTime, List<Event>>> _getGroupedAndSortedDailyEvents() {
+    if (_events.isEmpty) {
+      return [];
+    }
+
+    final DateTime todayNormalized = _normalizeDate(DateTime.now());
+    List<MapEntry<DateTime, List<Event>>> result = [];
+
+    // Sort all event days chronologically first
+    var allEventDaysSorted = _events.entries.toList();
+    allEventDaysSorted.sort((a, b) => a.key.compareTo(b.key));
+
+    for (var entry in allEventDaysSorted) {
+      DateTime day = entry.key;
+      List<Event> eventsOnThisDay = List<Event>.from(entry.value);
+
+      // Filter events to include only those whose deadlines are today or in the future
+      eventsOnThisDay.removeWhere((event) => event.end.isBefore(todayNormalized));
+
+      if (eventsOnThisDay.isEmpty) {
+        continue; // Skip this day if no "current" events are left after filtering
+      }
+
+      // Sort the current events for this day by their deadline (end date)
+      eventsOnThisDay.sort((a, b) => a.end.compareTo(b.end));
+
+      result.add(MapEntry(day, eventsOnThisDay));
+    }
+    return result;
   }
 
 
@@ -474,7 +509,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 return null;
               },
               rangeEndBuilder: (context, date, focusedDay) {
-                if (_highlightEnd != null && _normalizeDate(date) == _normalizeDate(_highlightEnd!.subtract(const Duration(days:1)))) {
+                if (_highlightEnd != null && _normalizeDate(date) == _normalizeDate(_highlightEnd!)) { // MODIFIED: Compare directly with _highlightEnd
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 4.0),
                     decoration: BoxDecoration(
@@ -490,9 +525,9 @@ class _CalendarPageState extends State<CalendarPage> {
               withinRangeBuilder: (context, date, focusedDay) {
                 if (_highlightStart != null && _highlightEnd != null &&
                     !isSameDay(date, _highlightStart!) &&
-                    !isSameDay(date, _highlightEnd!.subtract(const Duration(days:1))) &&
+                    !isSameDay(date, _highlightEnd!) && // MODIFIED: Compare directly with _highlightEnd
                     date.isAfter(_highlightStart!) &&
-                    date.isBefore(_highlightEnd!.subtract(const Duration(days:1)))) {
+                    date.isBefore(_highlightEnd!)) { // MODIFIED: Compare directly with _highlightEnd
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 4.0),
                     decoration: BoxDecoration(color: _highlightColor),
@@ -514,48 +549,64 @@ class _CalendarPageState extends State<CalendarPage> {
             rangeEndDay: _highlightEnd,
           ),
           const SizedBox(height: 8.0),
-          Expanded(
-            child: ValueListenableBuilder<List<Event>>(
-              valueListenable: ValueNotifier(_getEventsForDay(_selectedDay ?? DateTime.now())),
-              builder: (context, value, _) {
-                // It's better to fetch eventsForSelectedDay directly inside builder
-                // to ensure it's always up-to-date with _selectedDay
-                final eventsForSelectedDay = _getEventsForDay(_selectedDay ?? DateTime.now());
-                if (eventsForSelectedDay.isEmpty) {
-                  return const Center(child: Text("No events for this day."));
-                }
-                return ListView.builder(
-                  itemCount: eventsForSelectedDay.length,
-                  itemBuilder: (context, index) {
-                    final event = eventsForSelectedDay[index];
-                    bool isSelected = _selectedEvent == event;
-                    return Card(
-                      color: isSelected ? _highlightColor.withOpacity(0.5) : null,
-                      child: ListTile(
-                        title: Text(event.title),
-                        subtitle: Text(event.description ?? 'No description'),
-                        onTap: () {
-                          setState(() {
-                            _selectedEvent = event;
-                            _highlightStart = event.start;
-                            _highlightEnd = event.end.add(const Duration(days:1)); // for calendar range
-                            // This logic for color finding is a bit complex and might not always find the original color.
-                            // A more robust way would be to store the color index with the event or use a map.
-                            // For now, we'll stick to cycling colors on selection.
-                            _colorIndex = (_colorIndex + 1) % _highlightColors.length;
-                            _highlightColor = _highlightColors[_colorIndex];
-
-                            _focusedDay = event.start; // Focus the calendar on the event's start day
-                          });
-                        },
-                        trailing: IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _showEditEventDialog(event),
-                        ),
-                      ),
-                    );
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded( // Wrap title in Expanded to prevent overflow if text is long
+                  child: Text(
+                    _showDailyDeadlinesOnly
+                        ? "All Upcoming Deadlines" // MODIFIED Text
+                        : "Upcoming Events by Day",
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w500),
+                    overflow: TextOverflow.ellipsis, // Add ellipsis for long text
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showDailyDeadlinesOnly = !_showDailyDeadlinesOnly;
+                    });
                   },
-                );
+                  child: Text(
+                      _showDailyDeadlinesOnly 
+                          ? "Show Upcoming by Day" // MODIFIED Text
+                          : "Show All Deadlines"), // MODIFIED Text
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          Expanded(
+            child: Builder(
+              builder: (context) {
+                if (_showDailyDeadlinesOnly) {
+                  final todayNormalized = _normalizeDate(DateTime.now());
+                  List<Event> allUpcomingDeadlines = _events.values
+                      .expand((list) => list) // Flatten all event lists
+                      .toSet() // Remove duplicates that might exist across days if events span multiple days
+                      .toList()
+                      .where((event) => !event.end.isBefore(todayNormalized)) // Filter out past deadlines
+                      .toList();
+                  allUpcomingDeadlines.sort((a, b) => a.end.compareTo(b.end)); // Sort by deadline
+
+                  if (allUpcomingDeadlines.isEmpty) {
+                    return const Center(
+                        child: Text(
+                            "No upcoming deadlines to display.")); // MODIFIED Text
+                  }
+                  return _buildDailyDeadlineList(allUpcomingDeadlines);
+                } else {
+                  final List<MapEntry<DateTime, List<Event>>>
+                      groupedSortedEvents = _getGroupedAndSortedDailyEvents();
+                  if (groupedSortedEvents.isEmpty) {
+                    return const Center(
+                        child: Text("No current events to display."));
+                  }
+                  return _buildGroupedEventList(groupedSortedEvents);
+                }
               },
             ),
           ),
@@ -565,6 +616,107 @@ class _CalendarPageState extends State<CalendarPage> {
         onPressed: _showAddEventDialog,
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildGroupedEventList(List<MapEntry<DateTime, List<Event>>> groupedSortedEvents) {
+    return ListView.builder(
+      itemCount: groupedSortedEvents.length, // Number of days with current events
+      itemBuilder: (context, dayIndex) {
+        final dayEntry = groupedSortedEvents[dayIndex];
+        final DateTime day = dayEntry.key;
+        final List<Event> eventsOnThisDay = dayEntry.value;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Text(
+                MaterialLocalizations.of(context).formatFullDate(day),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+              ),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: eventsOnThisDay.length,
+              itemBuilder: (context, eventIndex) {
+                final event = eventsOnThisDay[eventIndex];
+                bool isSelected = _selectedEvent == event;
+
+                return Card(
+                  elevation: 2.0,
+                  margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                  color: isSelected ? _highlightColor.withOpacity(0.6) : Theme.of(context).cardColor,
+                  child: ListTile(
+                    title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w500)),
+                    subtitle: Text(
+                      "${event.description ?? 'No description'}\\nDeadline: ${MaterialLocalizations.of(context).formatShortDate(event.end)} at ${TimeOfDay.fromDateTime(event.end).format(context)}",
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                    isThreeLine: true,
+                    onTap: () {
+                      setState(() {
+                        _selectedEvent = event;
+                        _highlightStart = event.start;
+                        _highlightEnd = event.end;
+                        _colorIndex = (_colorIndex + 1) % _highlightColors.length;
+                        _highlightColor = _highlightColors[_colorIndex];
+                        _focusedDay = event.start;
+                      });
+                    },
+                    trailing: IconButton(
+                      icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
+                      onPressed: () => _showEditEventDialog(event),
+                    ),
+                  ),
+                );
+              },
+            ),
+            if (dayIndex < groupedSortedEvents.length - 1)
+              const Divider(height: 20, indent: 16, endIndent: 16, thickness: 0.5),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDailyDeadlineList(List<Event> events) {
+    final localizations = MaterialLocalizations.of(context);
+    return ListView.builder(
+      itemCount: events.length,
+      itemBuilder: (context, index) {
+        final event = events[index];
+        bool isSelected = _selectedEvent == event;
+        return Card(
+          elevation: 2.0,
+          margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+          color: isSelected ? _highlightColor.withOpacity(0.6) : Theme.of(context).cardColor,
+          child: ListTile(
+            title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w500)),
+            subtitle: Text(
+              "Deadline: ${localizations.formatShortDate(event.end)} at ${TimeOfDay.fromDateTime(event.end).format(context)}\\n${event.description ?? 'No description'}",
+              style: TextStyle(color: Colors.grey[700]),
+            ),
+            isThreeLine: (event.description ?? '').isNotEmpty, // Make it three lines if description exists
+            onTap: () {
+              setState(() {
+                _selectedEvent = event;
+                _highlightStart = event.start;
+                _highlightEnd = event.end;
+                _colorIndex = (_colorIndex + 1) % _highlightColors.length;
+                _highlightColor = _highlightColors[_colorIndex];
+                _focusedDay = event.start;
+              });
+            },
+            trailing: IconButton(
+              icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
+              onPressed: () => _showEditEventDialog(event),
+            ),
+          ),
+        );
+      },
     );
   }
 
