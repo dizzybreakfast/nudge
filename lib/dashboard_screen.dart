@@ -61,9 +61,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      // TODO: Implement navigation or content change based on index
-      // For now, just printing the index
-      print('Tapped index: $index');
     });
   }
 
