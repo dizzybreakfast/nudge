@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import '../models/account.dart';
+import 'package:nudge/models/task.dart';
 
 class DatabaseService {
   static final DatabaseService _databaseService = DatabaseService._internal();
@@ -30,9 +31,22 @@ class DatabaseService {
     await db.execute(
       "CREATE TABLE account (uuid TEXT PRIMARY KEY, api_id TEXT, user_level INTEGER DEFAULT 0, api_name TEXT, api_email TEXT, api_photo_url TEXT, is_signed_in INTEGER DEFAULT 0, is_public INTEGER DEFAULT 0, is_contributor_mode INTEGER DEFAULT 0, is_restricted INTEGER DEFAULT 0, is_synchronized INTEGER DEFAULT 0, ttl TEXT, created_at TEXT NOT NULL);",
     );
+    await db.execute('DROP TABLE IF EXISTS tasks');
+    await db.execute('''
+      CREATE TABLE tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        "column" TEXT NOT NULL,
+        startDate TEXT,
+        endDate TEXT
+      );
+    ''');
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    await db.execute('ALTER TABLE tasks ADD COLUMN startDate TEXT;');
+    await db.execute('ALTER TABLE tasks ADD COLUMN endDate TEXT;');
+  }
   // helper methods
   Future<void> insertAccount(Account account) async {
     final db = await _databaseService.database;
@@ -77,5 +91,27 @@ class DatabaseService {
   Future<void> clearAccounts() async {
     final db = await _databaseService.database;
     await db.delete('account');
+  }
+
+  // Task methods
+  // Add a new task
+  Future<void> insertTask(Task task) async {
+    final db = await database;
+    await db.insert('tasks', task.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  // Get all tasks
+  Future<List<Task>> getTasks() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('tasks');
+    return List.generate(maps.length, (i) => Task.fromMap(maps[i]));
+  }
+
+  // Update a task's column (for drag-and-drop)
+  Future<void> updateTaskColumn(int id, String newColumn) async {
+    final db = await database;
+    await db.update('tasks', {'column': newColumn},
+        where: 'id = ?', whereArgs: [id]);
   }
 }

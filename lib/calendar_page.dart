@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+<<<<<<< HEAD
 import 'task_board_screen.dart'; // Your existing import
 import 'event.dart';             // Your existing import for the Event class
 
@@ -16,6 +17,12 @@ import 'notification_service.dart';
 // import 'package:your_project_name/services/notification_service.dart';
 // --- END OF IMPORTANT IMPORT ---
 
+=======
+import 'task_board_screen.dart';
+import 'event.dart';
+import 'models/task.dart';
+import 'services/database.dart';
+>>>>>>> d8714224393271f58169bb0452a1b073eaee647f
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -78,6 +85,7 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
+<<<<<<< HEAD
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     if (!isSameDay(_selectedDay, selectedDay)) {
       setState(() {
@@ -110,6 +118,71 @@ class _CalendarPageState extends State<CalendarPage> {
                     TextField(
                       controller: _titleController,
                       decoration: const InputDecoration(hintText: "Event Title"),
+=======
+  @override
+  void initState() {
+    super.initState();
+    _loadTasksAsEvents();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _clearHighlight,
+      child: Scaffold(
+        appBar: AppBar(
+            title: const Text("Nudge"),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.view_kanban),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => TaskBoardScreen()),
+                  );
+                  if (result == true) {
+                    await _loadTasksAsEvents(); // reload events if a task was added
+                  }
+                },
+              ),
+            ]
+        ),
+        body: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TableCalendar<Event>(
+                  firstDay: DateTime(2020),
+                  lastDay: DateTime(2030),
+                  focusedDay: _focusedDay,
+                  calendarFormat: _calendarFormat,
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                  eventLoader: (day) => _events[_normalizeDate(day)] ?? [],
+                  rowHeight: 52,
+                  daysOfWeekHeight: 40,
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: true,
+                    titleCentered: true,
+                    formatButtonShowsNext: false,
+                    headerPadding: EdgeInsets.symmetric(vertical: 8.0),
+                    formatButtonDecoration: BoxDecoration(
+                      color: Colors.deepPurple,
+                      borderRadius: BorderRadius.all(Radius.circular(12.0)),
+>>>>>>> d8714224393271f58169bb0452a1b073eaee647f
                     ),
                     TextField(
                       controller: _descriptionController,
@@ -579,7 +652,25 @@ class _CalendarPageState extends State<CalendarPage> {
                     );
                   },
                 );
+<<<<<<< HEAD
               },
+=======
+                _manualEvents.add(event); // <-- add to manual events
+                for (var date = event.start;
+                !date.isAfter(event.end);
+                date = date.add(const Duration(days: 1))) {
+                  final key = _normalizeDate(date);
+                  _events.putIfAbsent(key, () => []);
+                  if (!_events[key]!.contains(event)) _events[key]!.add(event);
+                }
+                setState(() {});
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+>>>>>>> d8714224393271f58169bb0452a1b073eaee647f
             ),
           ),
         ],
@@ -610,5 +701,45 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
       ),
     );
+  }
+
+  final List<Event> _manualEvents = [];
+
+  Future<void> _loadTasksAsEvents() async {
+    final tasks = await DatabaseService().getTasks();
+    print("Loaded tasks: ${tasks.map((t) => '${t.title} ${t.startDate} ${t.endDate}').toList()}"); // <-- Add this line
+    setState(() {
+      _events.clear();
+      // Add tasks from database
+      for (final task in tasks) {
+        if (task.startDate != null) {
+          final event = Event(
+            title: task.title,
+            description: '', // You can add a description field to Task if you want
+            start: DateTime(task.startDate!.year, task.startDate!.month, task.startDate!.day),
+            end: task.endDate != null
+                ? DateTime(task.endDate!.year, task.endDate!.month, task.endDate!.day)
+                : DateTime(task.startDate!.year, task.startDate!.month, task.startDate!.day),
+          );
+          for (var date = event.start;
+              !date.isAfter(event.end);
+              date = date.add(const Duration(days: 1))) {
+            final key = _normalizeDate(date);
+            _events.putIfAbsent(key, () => []);
+            if (!_events[key]!.contains(event)) _events[key]!.add(event);
+          }
+        }
+      }
+      // Add manual events
+      for (final event in _manualEvents) {
+        for (var date = event.start;
+            !date.isAfter(event.end);
+            date = date.add(const Duration(days: 1))) {
+          final key = _normalizeDate(date);
+          _events.putIfAbsent(key, () => []);
+          if (!_events[key]!.contains(event)) _events[key]!.add(event);
+        }
+      }
+    });
   }
 }
