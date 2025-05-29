@@ -13,8 +13,8 @@ android {
         applicationId = "com.protoqor.nudge"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "N1.1.0"
+        versionCode = 4
+        versionName = "N1.2.0"
     }
 
     compileOptions {

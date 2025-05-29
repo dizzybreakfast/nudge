@@ -1,0 +1,1 @@
+New in N1.2.0: Pomodoro timer for focus, enhanced Calendar & Task Board with database loading & better date display, and a new notification system. Fixed calendar task sync. Enjoy the updates!
