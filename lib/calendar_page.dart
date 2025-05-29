@@ -150,11 +150,15 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                     const SizedBox(height: 20),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Start: ${(_eventStartDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventStartDate!) : 'Select'}"),
+                        Expanded(
+                          child: Text(
+                            "Start: ${(_eventStartDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventStartDate!) : 'Select'}",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         TextButton(
-                          child: const Text("Select Start Date"),
+                          child: const Text("Select"),
                           onPressed: () async {
                             final DateTime? picked = await showDatePicker(
                               context: stfContext,
@@ -175,11 +179,15 @@ class _CalendarPageState extends State<CalendarPage> {
                       ],
                     ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("End: ${(_eventEndDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventEndDate!) : 'Select'}"),
+                        Expanded(
+                          child: Text(
+                            "End: ${(_eventEndDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventEndDate!) : 'Select'}",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         TextButton(
-                          child: const Text("Select End Date"),
+                          child: const Text("Select"),
                           onPressed: () async {
                             final DateTime? picked = await showDatePicker(
                               context: stfContext,
@@ -202,7 +210,7 @@ class _CalendarPageState extends State<CalendarPage> {
               actions: <Widget>[
                 TextButton(
                   child: const Text("Cancel"),
-                  onPressed: () => Navigator.pop(dialogContext),
+                  onPressed: () => Navigator.of(dialogContext).pop(),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -214,6 +222,10 @@ class _CalendarPageState extends State<CalendarPage> {
                         end: _eventEndDate!,
                       );
 
+                      // First close the dialog
+                      Navigator.of(dialogContext).pop();
+
+                      // Then perform the state updates
                       setState(() {
                         for (var date = event.start; !date.isAfter(event.end); date = date.add(const Duration(days: 1))) {
                           final key = _normalizeDate(date);
@@ -230,7 +242,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         _highlightColor = _highlightColors[_colorIndex];
                       });
 
-                      // --- SYNC TO TASK BOARD ---
+                      // Sync to task board
                       final tasks = await DatabaseService().getTasks();
                       final lastOrder = tasks
                           .where((t) => t.column == 'To Do')
@@ -245,7 +257,6 @@ class _CalendarPageState extends State<CalendarPage> {
                         order: lastOrder + 1,
                       );
                       await DatabaseService().insertTask(newTask);
-                      // --- END SYNC ---
 
                       NotificationService.scheduleTaskNotifications(
                         id: event.hashCode,
@@ -253,8 +264,6 @@ class _CalendarPageState extends State<CalendarPage> {
                         body: event.description ?? "Task due: ${event.title}",
                         deadline: event.end,
                       );
-
-                      Navigator.pop(dialogContext);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -300,11 +309,15 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                     const SizedBox(height: 20),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Start: ${(_eventStartDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventStartDate!) : 'Select'}"),
+                        Expanded(
+                          child: Text(
+                            "Start: ${(_eventStartDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventStartDate!) : 'Select'}",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         TextButton(
-                          child: const Text("Select Start Date"),
+                          child: const Text("Select"),
                           onPressed: () async {
                             final DateTime? picked = await showDatePicker(
                               context: stfContext,
@@ -325,11 +338,15 @@ class _CalendarPageState extends State<CalendarPage> {
                       ],
                     ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("End: ${(_eventEndDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventEndDate!) : 'Select'}"),
+                        Expanded(
+                          child: Text(
+                            "End: ${(_eventEndDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventEndDate!) : 'Select'}",
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         TextButton(
-                          child: const Text("Select End Date"),
+                          child: const Text("Select"),
                           onPressed: () async {
                             final DateTime? picked = await showDatePicker(
                               context: stfContext,
@@ -352,7 +369,7 @@ class _CalendarPageState extends State<CalendarPage> {
               actions: <Widget>[
                 TextButton(
                   child: const Text("Cancel"),
-                  onPressed: () => Navigator.pop(dialogContext),
+                  onPressed: () => Navigator.of(dialogContext).pop(),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -364,11 +381,15 @@ class _CalendarPageState extends State<CalendarPage> {
                         end: _eventEndDate!,
                       );
 
+                      // First close the dialog
+                      Navigator.of(dialogContext).pop();
+
+                      // Then perform the state updates
                       setState(() {
                         for (var date = originalEvent.start; !date.isAfter(originalEvent.end); date = date.add(const Duration(days: 1))) {
                           final key = _normalizeDate(date);
                           _events[key]?.removeWhere((e) =>
-                              e.title == originalEvent.title &&
+                          e.title == originalEvent.title &&
                               e.start == originalEvent.start &&
                               e.end == originalEvent.end);
                           if (_events[key]?.isEmpty ?? false) {
@@ -401,7 +422,6 @@ class _CalendarPageState extends State<CalendarPage> {
                         body: updatedEvent.description ?? "Task due: ${updatedEvent.title}",
                         deadline: updatedEvent.end,
                       );
-                      Navigator.pop(dialogContext);
                     }
                   },
                   style: ElevatedButton.styleFrom(
