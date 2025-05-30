@@ -5,6 +5,7 @@ class Task {
   final DateTime? startDate;
   final DateTime? endDate;
   final int order;
+  final String? description; // <-- Add this line
 
   Task({
     this.id,
@@ -13,27 +14,30 @@ class Task {
     this.startDate,
     this.endDate,
     required this.order,
+    this.description, // <-- Add this line
   });
 
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'title': title,
-    'column': column,
-    'startDate': startDate?.toIso8601String(),
-    'endDate': endDate?.toIso8601String(),
-    'order': order,
-  };
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'column': column,
+      'startDate': startDate?.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
+      'order': order,
+      'description': description, // <-- Add this line
+    };
+  }
 
-  factory Task.fromMap(Map<String, dynamic> map) => Task(
-    id: map['id'],
-    title: map['title'],
-    column: map['column'],
-    startDate: map['startDate'] != null && map['startDate'] != ''
-        ? DateTime.parse(map['startDate'])
-        : null,
-    endDate: map['endDate'] != null && map['endDate'] != ''
-        ? DateTime.parse(map['endDate'])
-        : null,
-    order: map['order'] ?? 0,
-  );
+  factory Task.fromMap(Map<String, dynamic> map) {
+    return Task(
+      id: map['id'] as int?,
+      title: map['title'] as String,
+      column: map['column'] as String,
+      startDate: map['startDate'] != null ? DateTime.parse(map['startDate']) : null,
+      endDate: map['endDate'] != null ? DateTime.parse(map['endDate']) : null,
+      order: map['order'] as int,
+      description: map['description'] as String?, // <-- Add this line
+    );
+  }
 }

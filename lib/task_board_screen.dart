@@ -34,6 +34,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
 
   void _showAddTaskDialog() {
     final TextEditingController controller = TextEditingController();
+    final TextEditingController descriptionController = TextEditingController(); 
     DateTime? startDate;
     DateTime? endDate;
 
@@ -59,73 +60,99 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                           fontSize: 20,
                         ),
                       ),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextField(
-                            controller: controller,
-                            autofocus: true,
-                            cursorColor: accentColor,
-                            decoration: InputDecoration(
-                              hintText: 'Enter task name',
-                              hintStyle: TextStyle(color: textSecondary),
-                              filled: true,
-                              fillColor: backgroundColor,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: borderColor),
+                      content: Flexible(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                controller: controller,
+                                autofocus: true,
+                                cursorColor: accentColor,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter task name',
+                                  hintStyle: TextStyle(color: textSecondary),
+                                  filled: true,
+                                  fillColor: backgroundColor,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: borderColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: accentColor),
+                                  ),
+                                ),
+                                style: TextStyle(color: primaryColor),
+                                onChanged: (_) => setState(() {}),
                               ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: accentColor),
+                              const SizedBox(height: 12),
+                              TextField(
+                                controller: descriptionController, // <-- Add this
+                                maxLines: 3,
+                                cursorColor: accentColor,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter description (optional)',
+                                  hintStyle: TextStyle(color: textSecondary),
+                                  filled: true,
+                                  fillColor: backgroundColor,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: borderColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: accentColor),
+                                  ),
+                                ),
+                                style: TextStyle(color: primaryColor),
                               ),
-                            ),
-                            style: TextStyle(color: primaryColor),
-                            onChanged: (_) => setState(() {}),
+                              const SizedBox(height: 12),
+                              ListTile(
+                                title: Text(
+                                  startDate == null
+                                      ? "Pick start date"
+                                      : "Start: "+startDate!.toLocal().toString().split(' ')[0],
+                                  style: TextStyle(color: primaryColor),
+                                ),
+                                trailing: Icon(Icons.calendar_today, color: accentColor),
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: startDate ?? DateTime.now(),
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) setState(() {
+                                    startDate = picked;
+                                    if (endDate != null && endDate!.isBefore(startDate!)) {
+                                      endDate = picked;
+                                    }
+                                  });
+                                },
+                              ),
+                              ListTile(
+                                title: Text(
+                                  endDate == null
+                                      ? "Pick end date"
+                                      : "End: "+(endDate != null ? endDate!.toLocal().toString().split(' ')[0] : ''),
+                                  style: TextStyle(color: primaryColor),
+                                ),
+                                trailing: Icon(Icons.calendar_today, color: accentColor),
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: endDate ?? startDate ?? DateTime.now(),
+                                    firstDate: startDate ?? DateTime.now(),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) setState(() => endDate = picked);
+                                },
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          ListTile(
-                            title: Text(
-                              startDate == null
-                                  ? "Pick start date"
-                                  : "Start: "+startDate!.toLocal().toString().split(' ')[0],
-                              style: TextStyle(color: primaryColor),
-                            ),
-                            trailing: Icon(Icons.calendar_today, color: accentColor),
-                            onTap: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: startDate ?? DateTime.now(),
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-                              if (picked != null) setState(() {
-                                startDate = picked;
-                                if (endDate != null && endDate!.isBefore(startDate!)) {
-                                  endDate = picked;
-                                }
-                              });
-                            },
-                          ),
-                          ListTile(
-                            title: Text(
-                              endDate == null
-                                  ? "Pick end date"
-                                  : "End: "+(endDate != null ? endDate!.toLocal().toString().split(' ')[0] : ''),
-                              style: TextStyle(color: primaryColor),
-                            ),
-                            trailing: Icon(Icons.calendar_today, color: accentColor),
-                            onTap: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: endDate ?? startDate ?? DateTime.now(),
-                                firstDate: startDate ?? DateTime.now(),
-                                lastDate: DateTime(2100),
-                              );
-                              if (picked != null) setState(() => endDate = picked);
-                            },
-                          ),
-                        ],
+                        ),
                       ),
                       actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       actions: [
@@ -153,6 +180,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                                       : columnTasks.map((t) => t.order).reduce((a, b) => a > b ? a : b);
                                   final task = Task(
                                     title: controller.text.trim(),
+                                    description: descriptionController.text.trim(), // <-- Add this
                                     column: 'To Do',
                                     startDate: startDate,
                                     endDate: endDate,
@@ -554,73 +582,76 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                   fontSize: 20,
                 ),
               ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: controller,
-                      autofocus: true,
-                      cursorColor: accentColor,
-                      decoration: InputDecoration(
-                        hintText: 'Enter task name',
-                        hintStyle: TextStyle(color: textSecondary),
-                        filled: true,
-                        fillColor: backgroundColor,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: borderColor),
+              content: Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: controller,
+                        autofocus: true,
+                        cursorColor: accentColor,
+                        decoration: InputDecoration(
+                          hintText: 'Enter task name',
+                          hintStyle: TextStyle(color: textSecondary),
+                          filled: true,
+                          fillColor: backgroundColor,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: borderColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: accentColor),
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: accentColor),
-                        ),
-                      ),
-                      style: TextStyle(color: primaryColor),
-                    ),
-                    const SizedBox(height: 12),
-                    ListTile(
-                      title: Text(
-                        startDate == null
-                            ? "Pick start date"
-                            : "Start: ${startDate!.toLocal().toString().split(' ')[0]}",
                         style: TextStyle(color: primaryColor),
                       ),
-                      trailing: Icon(Icons.calendar_today, color: accentColor),
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: startDate ?? DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        );
-                        if (picked != null) setState(() {
-                          startDate = picked;
-                          if (endDate != null && endDate!.isBefore(startDate!)) {
-                            endDate = picked;
-                          }
-                        });
-                      },
-                    ),
-                    ListTile(
-                      title: Text(
-                        endDate == null
-                            ? "Pick end date"
-                            : "End: ${endDate != null ? endDate!.toLocal().toString().split(' ')[0] : ''}",
-                        style: TextStyle(color: primaryColor),
+                      const SizedBox(height: 12),
+                      ListTile(
+                        title: Text(
+                          startDate == null
+                              ? "Pick start date"
+                              : "Start: ${startDate!.toLocal().toString().split(' ')[0]}",
+                          style: TextStyle(color: primaryColor),
+                        ),
+                        trailing: Icon(Icons.calendar_today, color: accentColor),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: startDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) setState(() {
+                            startDate = picked;
+                            if (endDate != null && endDate!.isBefore(startDate!)) {
+                              endDate = picked;
+                            }
+                          });
+                        },
                       ),
-                      trailing: Icon(Icons.calendar_today, color: accentColor),
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: endDate ?? startDate ?? DateTime.now(),
-                          firstDate: startDate ?? DateTime.now(),
-                          lastDate: DateTime(2100),
-                        );
-                        if (picked != null) setState(() => endDate = picked);
-                      },
-                    ),
-                  ],
+                      ListTile(
+                        title: Text(
+                          endDate == null
+                              ? "Pick end date"
+                              : "End: ${endDate != null ? endDate!.toLocal().toString().split(' ')[0] : ''}",
+                          style: TextStyle(color: primaryColor),
+                        ),
+                        trailing: Icon(Icons.calendar_today, color: accentColor),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: endDate ?? startDate ?? DateTime.now(),
+                            firstDate: startDate ?? DateTime.now(),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) setState(() => endDate = picked);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

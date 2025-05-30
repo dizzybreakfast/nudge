@@ -39,7 +39,8 @@ class DatabaseService {
         "column" TEXT NOT NULL,
         startDate TEXT,
         endDate TEXT,
-        "order" INTEGER
+        "order" INTEGER,
+        description TEXT
       );
     ''');
   }

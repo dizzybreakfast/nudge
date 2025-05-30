@@ -56,6 +56,7 @@ class _CalendarPageState extends State<CalendarPage> {
       if (task.startDate != null && task.endDate != null) {
         final event = Event(
           title: task.title,
+          description: task.description, 
           start: task.startDate!,
           end: task.endDate!,
         );
@@ -70,6 +71,7 @@ class _CalendarPageState extends State<CalendarPage> {
       } else if (task.endDate != null) { // Handle tasks that might only have an end date (as deadlines)
         final event = Event(
           title: task.title,
+          description: task.description, 
           start: task.endDate!, // Treat deadline as a single-day event starting and ending on endDate
           end: task.endDate!,
         );
@@ -747,9 +749,25 @@ class _CalendarPageState extends State<CalendarPage> {
                   color: isSelected ? _highlightColor.withOpacity(0.6) : Theme.of(context).cardColor,
                   child: ListTile(
                     title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w500)),
-                    subtitle: Text(
-                      "${event.description ?? 'No description'}\\nDeadline: ${MaterialLocalizations.of(context).formatShortDate(event.end)} at ${TimeOfDay.fromDateTime(event.end).format(context)}",
-                      style: TextStyle(color: Colors.grey[700]),
+                    subtitle: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "${event.description?.isNotEmpty == true ? event.description : 'No description'}\n",
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                          TextSpan(
+                            text: "Deadline: ${MaterialLocalizations.of(context).formatShortDate(event.end)} at ${TimeOfDay.fromDateTime(event.end).format(context)}",
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontStyle: FontStyle.normal,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     isThreeLine: true,
                     onTap: () {
@@ -800,9 +818,25 @@ class _CalendarPageState extends State<CalendarPage> {
           color: isSelected ? _highlightColor.withOpacity(0.6) : Theme.of(context).cardColor,
           child: ListTile(
             title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w500)),
-            subtitle: Text(
-              "Deadline: ${localizations.formatShortDate(event.end)} at ${TimeOfDay.fromDateTime(event.end).format(context)}\\n${event.description ?? 'No description'}",
-              style: TextStyle(color: Colors.grey[700]),
+            subtitle: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: "Deadline: ${localizations.formatShortDate(event.end)} at ${TimeOfDay.fromDateTime(event.end).format(context)}\n",
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontStyle: FontStyle.normal,
+                    ),
+                  ),
+                  TextSpan(
+                    text: "${event.description ?? 'No description'}",
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
             ),
             isThreeLine: (event.description ?? '').isNotEmpty, // Make it three lines if description exists
             onTap: () {
