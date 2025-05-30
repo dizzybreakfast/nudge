@@ -125,6 +125,15 @@ class DatabaseService {
     );
   }
 
+  Future<void> deleteTaskByTitleAndDate(String title, DateTime endDate) async {
+    final db = await database;
+    await db.delete(
+      'tasks',
+      where: 'title = ? AND endDate = ?',
+      whereArgs: [title, endDate.toIso8601String()],
+    );
+  }
+
   Future<void> updateTaskOrder(int id, int order) async {
     final db = await _databaseService.database;
     await db.update(

@@ -438,6 +438,49 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
+  void _deleteEvent(Event event) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Event"),
+        content: Text("Are you sure you want to delete '${event.title}'?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              setState(() {
+                for (var date = event.start; !date.isAfter(event.end); date = date.add(const Duration(days: 1))) {
+                  final key = _normalizeDate(date);
+                  _events[key]?.removeWhere((e) =>
+                  e.title == event.title &&
+                      e.start == event.start &&
+                      e.end == event.end);
+                  if (_events[key]?.isEmpty ?? false) {
+                    _events.remove(key);
+                  }
+                }
+                if (_selectedEvent == event) {
+                  _clearHighlight();
+                }
+              });
+
+              // Also delete from database
+              await DatabaseService().deleteTaskByTitleAndDate(event.title, event.end);
+
+              // Cancel any scheduled notifications
+              //NotificationService.cancelNotification(event.hashCode);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   List<MapEntry<DateTime, List<Event>>> _getGroupedAndSortedDailyEvents() {
     if (_events.isEmpty) {
       return [];
@@ -715,9 +758,18 @@ class _CalendarPageState extends State<CalendarPage> {
                         _focusedDay = event.start;
                       });
                     },
-                    trailing: IconButton(
-                      icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
-                      onPressed: () => _showEditEventDialog(event),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
+                          onPressed: () => _showEditEventDialog(event),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteEvent(event),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -759,9 +811,18 @@ class _CalendarPageState extends State<CalendarPage> {
                 _focusedDay = event.start;
               });
             },
-            trailing: IconButton(
-              icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
-              onPressed: () => _showEditEventDialog(event),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
+                  onPressed: () => _showEditEventDialog(event),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _deleteEvent(event),
+                ),
+              ],
             ),
           ),
         );
