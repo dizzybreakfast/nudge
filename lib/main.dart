@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nudge/calendar_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'notification_service.dart'; // Added import
+// import 'notification_service.dart'; // Keep this import if other parts of main need it, or remove if not.
 
 // Added ThemeProvider class
 class ThemeProvider with ChangeNotifier {
@@ -40,7 +40,7 @@ class ThemeProvider with ChangeNotifier {
 
 Future<void> main() async { // Changed to async
   WidgetsFlutterBinding.ensureInitialized(); // Ensure bindings are initialized
-  await NotificationService.initialize(); // Initialize notifications
+  // await NotificationService.initialize(); // REMOVE THIS LINE
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(),

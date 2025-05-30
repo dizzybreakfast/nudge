@@ -101,14 +101,24 @@ class NotificationService {
 
     await _notificationsPlugin.initialize(initializationSettings,
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
+  }
 
-    // Request Android 13+ notification permission
+  // ADDED: Method to request notification permission if not already granted
+  static Future<bool> requestPermissionIfNotGranted() async {
     final androidPlugin = _notificationsPlugin
         .resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     if (androidPlugin != null) {
-      /*final bool? granted = */await androidPlugin.requestNotificationsPermission();
+      // Check if permission is already granted (though requestNotificationsPermission handles this)
+      // For a more explicit check, you might need another plugin or platform channel call
+      // to query current permission status before requesting.
+      // However, requestNotificationsPermission itself usually only prompts if not granted.
+      final bool? granted = await androidPlugin.requestNotificationsPermission();
+      return granted ?? false;
     }
+    // For iOS, permissions are typically requested during initialize or via DarwinInitializationSettings.
+    // If specific iOS permission request is needed here, it would require similar platform-specific implementation.
+    return true; // Assume granted or not applicable for non-Android platforms for simplicity here
   }
 
   // --- Callbacks for notification interaction (optional but good practice) ---

@@ -216,7 +216,7 @@ class _CalendarPageState extends State<CalendarPage> {
               onPressed: () => Navigator.of(dialogContext).pop(),
             ),
             ElevatedButton(
-              onPressed: () async {
+              onPressed: () async { // MARKED AS ASYNC
                 if (_titleController.text.isNotEmpty && _eventStartDate != null && _eventEndDate != null) {
                   final event = Event(
                     title: _titleController.text,
@@ -261,12 +261,19 @@ class _CalendarPageState extends State<CalendarPage> {
                   );
                   await DatabaseService().insertTask(newTask);
 
-                  NotificationService.scheduleTaskNotifications(
-                    id: event.hashCode,
-                    title: event.title,
-                    body: event.description ?? "Task due: ${event.title}",
-                    deadline: event.end,
-                  );
+                  // ADDED: Request notification permission before scheduling
+                  bool permissionsGranted = await NotificationService.requestPermissionIfNotGranted();
+                  if (permissionsGranted) {
+                    NotificationService.scheduleTaskNotifications(
+                      id: newTask.id ?? event.hashCode, // Prefer newTask.id if available
+                      title: event.title,
+                      body: event.description ?? "Task due: ${event.title}",
+                      deadline: event.end,
+                    );
+                  } else {
+                    // Optionally, inform the user that notifications won't be scheduled
+                    print("Notification permission not granted. Task reminder not scheduled.");
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -373,7 +380,7 @@ class _CalendarPageState extends State<CalendarPage> {
               onPressed: () => Navigator.of(dialogContext).pop(),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async { // MARKED AS ASYNC
                 if (_titleController.text.isNotEmpty && _eventStartDate != null && _eventEndDate != null) {
                   final updatedEvent = Event(
                     title: _titleController.text,
@@ -417,12 +424,19 @@ class _CalendarPageState extends State<CalendarPage> {
                     }
                   });
 
-                  NotificationService.scheduleTaskNotifications(
-                    id: updatedEvent.hashCode,
-                    title: updatedEvent.title,
-                    body: updatedEvent.description ?? "Task due: ${updatedEvent.title}",
-                    deadline: updatedEvent.end,
-                  );
+                  // ADDED: Request notification permission before scheduling
+                  bool permissionsGranted = await NotificationService.requestPermissionIfNotGranted();
+                  if (permissionsGranted) {
+                    NotificationService.scheduleTaskNotifications(
+                      id: updatedEvent.hashCode, // Consider using a more stable ID from updatedTask if available
+                      title: updatedEvent.title,
+                      body: updatedEvent.description ?? "Task due: ${updatedEvent.title}",
+                      deadline: updatedEvent.end,
+                    );
+                  } else {
+                    // Optionally, inform the user that notifications won't be scheduled
+                    print("Notification permission not granted. Task reminder not scheduled.");
+                  }
                 }
               },
               style: ElevatedButton.styleFrom(

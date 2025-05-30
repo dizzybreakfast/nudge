@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:nudge/notification_service.dart'; // ADDED: Import NotificationService
 
 class PomodoroPage extends StatefulWidget {
   const PomodoroPage({super.key});
@@ -74,6 +75,18 @@ class _PomodoroPageState extends State<PomodoroPage> {
   }
 
   void _notifyStudyComplete() async {
+    // ADDED: Request notification permission
+    bool permissionsGranted = await NotificationService.requestPermissionIfNotGranted();
+    if (!permissionsGranted) {
+      // Optionally, show a message to the user that notifications cannot be shown
+      // or log this information.
+      print("Notification permission not granted. Cannot show study completion notification.");
+      setState(() {
+        _isRunning = false;
+      });
+      return; // Exit if permission not granted
+    }
+
     setState(() {
       _isRunning = false;
     });
@@ -137,6 +150,15 @@ class _PomodoroPageState extends State<PomodoroPage> {
   }
 
   void _showNotification({String message = 'Pomodoro Running...'}) async {
+    // ADDED: Request notification permission
+    bool permissionsGranted = await NotificationService.requestPermissionIfNotGranted();
+    if (!permissionsGranted) {
+      // Optionally, show a message to the user that notifications cannot be shown
+      // or log this information.
+      print("Notification permission not granted. Cannot show pomodoro running notification.");
+      return; // Exit if permission not granted
+    }
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
     AndroidNotificationDetails(
       'pomodoro_channel',
