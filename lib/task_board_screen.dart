@@ -207,6 +207,41 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
 
   Future<void> _loadTasks() async {
     tasks = await DatabaseService().getTasks();
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    bool changed = false;
+
+    for (final task in tasks) {
+      String? newColumn;
+
+      // Normalize dates to ignore time part
+      final start = task.startDate != null
+          ? DateTime(task.startDate!.year, task.startDate!.month, task.startDate!.day)
+          : null;
+      final end = task.endDate != null
+          ? DateTime(task.endDate!.year, task.endDate!.month, task.endDate!.day)
+          : null;
+
+      // Move to "Done" if end date is before today
+      if (end != null && end.isBefore(todayDate)) {
+        if (task.column != 'Done') newColumn = 'Done';
+      }
+      // Move to "In Progress" if start date is today or earlier and end date is today or later
+      else if (start != null && start.isBefore(todayDate.add(const Duration(days: 1))) &&
+          (end == null || end.isAfter(todayDate.subtract(const Duration(days: 1))))) {
+        if (task.column != 'In Progress') newColumn = 'In Progress';
+      }
+
+      if (newColumn != null) {
+        await DatabaseService().updateTaskColumn(task.id!, newColumn);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      // Re-fetch tasks if any were updated
+      tasks = await DatabaseService().getTasks();
+    }
     setState(() {});
   }
 
