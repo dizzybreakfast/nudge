@@ -519,7 +519,11 @@ class _CalendarPageState extends State<CalendarPage> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const TaskBoardScreen()),
-              );
+              ).then((tasksChanged) {
+                if (tasksChanged == true) {
+                  _loadTasksFromDb(); 
+                }
+              });
             },
           ),
           IconButton(
