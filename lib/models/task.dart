@@ -5,7 +5,7 @@ class Task {
   final DateTime? startDate;
   final DateTime? endDate;
   final int order;
-  final String? description; // <-- Add this line
+  final String? description;
 
   Task({
     this.id,
@@ -14,7 +14,7 @@ class Task {
     this.startDate,
     this.endDate,
     required this.order,
-    this.description, // <-- Add this line
+    this.description,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,7 +25,7 @@ class Task {
       'startDate': startDate?.toIso8601String(),
       'endDate': endDate?.toIso8601String(),
       'order': order,
-      'description': description, // <-- Add this line
+      'description': description, 
     };
   }
 
@@ -37,7 +37,7 @@ class Task {
       startDate: map['startDate'] != null ? DateTime.parse(map['startDate']) : null,
       endDate: map['endDate'] != null ? DateTime.parse(map['endDate']) : null,
       order: map['order'] as int,
-      description: map['description'] as String?, // <-- Add this line
+      description: map['description'] as String?,
     );
   }
 }

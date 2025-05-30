@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:nudge/authentication_screen.dart';
 import 'package:nudge/services/database.dart';
 import 'package:nudge/models/account.dart';
-import 'package:nudge/widgets/custom_bottom_nav_widget.dart'; // Add this import
-import 'package:nudge/widgets/personal_island_widget.dart'; // Add this import
+import 'package:nudge/widgets/custom_bottom_nav_widget.dart';
+import 'package:nudge/widgets/personal_island_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

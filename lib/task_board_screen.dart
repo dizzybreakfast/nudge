@@ -89,7 +89,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                               ),
                               const SizedBox(height: 12),
                               TextField(
-                                controller: descriptionController, // <-- Add this
+                                controller: descriptionController, 
                                 maxLines: 3,
                                 cursorColor: accentColor,
                                 decoration: InputDecoration(
@@ -180,7 +180,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                                       : columnTasks.map((t) => t.order).reduce((a, b) => a > b ? a : b);
                                   final task = Task(
                                     title: controller.text.trim(),
-                                    description: descriptionController.text.trim(), // <-- Add this
+                                    description: descriptionController.text.trim(), 
                                     column: 'To Do',
                                     startDate: startDate,
                                     endDate: endDate,
