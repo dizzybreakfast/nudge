@@ -56,36 +56,36 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Nudge',
           theme: ThemeData(
-            brightness: Brightness.light,
-            primarySwatch: Colors.deepPurple, // Example primary color
-            // Define other light theme properties if needed
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepPurple,
+              brightness: Brightness.light,
+              surface: Colors.grey[200]!,
+              onSurface: Colors.black,
+            ),
+            useMaterial3: true,
           ),
           darkTheme: ThemeData(
             brightness: Brightness.dark,
-            primarySwatch: Colors.teal, // Example primary color for dark theme
-            scaffoldBackgroundColor: Colors.grey[850], // Dark background
+            primarySwatch: Colors.teal, 
+            scaffoldBackgroundColor: Colors.grey[850],
             appBarTheme: AppBarTheme(
-              backgroundColor: Colors.grey[900], // Dark app bar
+              backgroundColor: Colors.grey[900],
               iconTheme: const IconThemeData(color: Colors.white),
               titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20),
             ),
-            cardColor: Colors.grey[800], // Dark card color
-            iconTheme: const IconThemeData(color: Colors.white70), // Icons
-            textTheme: const TextTheme( // Define text styles for dark theme
+            cardColor: Colors.grey[800],
+            iconTheme: const IconThemeData(color: Colors.white70),
+            textTheme: const TextTheme(
               bodyLarge: TextStyle(color: Colors.white),
               bodyMedium: TextStyle(color: Colors.white70),
               titleLarge: TextStyle(color: Colors.white),
             ),
-            // Add other dark theme properties as needed
-            // For example, button themes, dialog themes, etc.
             colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.teal, // Seed color for dark theme
+                seedColor: Colors.teal,
                 brightness: Brightness.dark,
-                background: Colors.grey[850]!,
                 surface: Colors.grey[800]!,
-                onBackground: Colors.white,
                 onSurface: Colors.white,
-            ),
+            )
           ),
           themeMode: themeProvider.themeMode,
           home: const CalendarPage(),

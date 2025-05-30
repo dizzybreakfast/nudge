@@ -55,9 +55,6 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
         UILocalNotificationDateInterpretation.absoluteTime,
       );
-      print('Scheduled "tomorrow" notification (ID: $tomorrowNotificationId) for $title at ${deadline.subtract(const Duration(days: 1))}');
-    } else {
-      print('Skipped "tomorrow" notification for $title as it is in the past.');
     }
 
     // --- Notify on the actual deadline ---
@@ -81,9 +78,6 @@ class NotificationService {
         uiLocalNotificationDateInterpretation:
         UILocalNotificationDateInterpretation.absoluteTime,
       );
-      print('Scheduled "today" notification (ID: $todayNotificationId) for $title at $deadline');
-    } else {
-      print('Skipped "today" notification for $title as it is in the past.');
     }
   }
 
@@ -100,7 +94,7 @@ class NotificationService {
         requestSoundPermission: true,
         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
 
-    final InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
@@ -113,8 +107,7 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     if (androidPlugin != null) {
-      final bool? granted = await androidPlugin.requestNotificationsPermission();
-      print("Android notification permission granted: $granted");
+      /*final bool? granted = */await androidPlugin.requestNotificationsPermission();
     }
   }
 
@@ -123,19 +116,13 @@ class NotificationService {
       int id, String? title, String? body, String? payload) async {
     // display a dialog with the notification details,
     // navigate to a specific page etc.
-    print(
-        "onDidReceiveLocalNotification: id ($id), title ($title), body ($body), payload ($payload)");
   }
 
   static void onDidReceiveNotificationResponse(
       NotificationResponse notificationResponse) async {
-    final String? payload = notificationResponse.payload;
+    /*final String? payload = notificationResponse.payload;*/
     if (notificationResponse.payload != null) {
-      print('notification payload: $payload');
     }
-    print(
-        "onDidReceiveNotificationResponse: id (${notificationResponse.id}), payload ($payload)");
-    // Add navigation or other actions here
   }
 
   // --- ADD a method to cancel notifications for a specific event ID ---
@@ -145,6 +132,5 @@ class NotificationService {
 
     await _notificationsPlugin.cancel(tomorrowNotificationId);
     await _notificationsPlugin.cancel(todayNotificationId);
-    print('Cancelled notifications for event ID: $eventId (IDs: $tomorrowNotificationId, $todayNotificationId)');
   }
 }

@@ -134,152 +134,148 @@ class _CalendarPageState extends State<CalendarPage> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (stfContext, stfSetState) {
-            return AlertDialog(
-              backgroundColor: theme.dialogBackgroundColor, // Use theme dialog background color
-              title: Text("Add New Event", style: TextStyle(color: theme.textTheme.titleLarge?.color)), // Use theme text color
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    TextField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(hintText: "Event Title"),
+      builder: (BuildContext dialogContext) { // Renamed context to dialogContext
+        return AlertDialog(
+          backgroundColor: Theme.of(context).dialogTheme.backgroundColor, // Updated
+          title: const Text('Add Event'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(hintText: "Event Title"),
+                ),
+                TextField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(hintText: "Description (Optional)"),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "Start: ${(_eventStartDate != null) ? MaterialLocalizations.of(dialogContext).formatShortDate(_eventStartDate!) : 'Select'}",
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    TextField(
-                      controller: _descriptionController,
-                      decoration: const InputDecoration(hintText: "Description (Optional)"),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "Start: ${(_eventStartDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventStartDate!) : 'Select'}",
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        TextButton(
-                          child: const Text("Select"),
-                          onPressed: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: stfContext,
-                              initialDate: _eventStartDate ?? DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2101),
-                            );
-                            if (picked != null && picked != _eventStartDate) {
-                              stfSetState(() {
-                                _eventStartDate = picked;
-                                if (_eventEndDate != null && _eventEndDate!.isBefore(_eventStartDate!)) {
-                                  _eventEndDate = _eventStartDate;
-                                }
-                              });
+                    TextButton(
+                      child: const Text("Select"),
+                      onPressed: () async {
+                        final DateTime? picked = await showDatePicker(
+                          context: dialogContext,
+                          initialDate: _eventStartDate ?? DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (picked != null && picked != _eventStartDate) {
+                          setState(() {
+                            _eventStartDate = picked;
+                            if (_eventEndDate != null && _eventEndDate!.isBefore(_eventStartDate!)) {
+                              _eventEndDate = _eventStartDate;
                             }
-                          },
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "End: ${(_eventEndDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventEndDate!) : 'Select'}",
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        TextButton(
-                          child: const Text("Select"),
-                          onPressed: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: stfContext,
-                              initialDate: _eventEndDate ?? _eventStartDate ?? DateTime.now(),
-                              firstDate: _eventStartDate ?? DateTime(2000),
-                              lastDate: DateTime(2101),
-                            );
-                            if (picked != null && picked != _eventEndDate) {
-                              stfSetState(() {
-                                _eventEndDate = picked;
-                              });
-                            }
-                          },
-                        ),
-                      ],
+                          });
+                        }
+                      },
                     ),
                   ],
                 ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text("Cancel"),
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_titleController.text.isNotEmpty && _eventStartDate != null && _eventEndDate != null) {
-                      final event = Event(
-                        title: _titleController.text,
-                        description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-                        start: _eventStartDate!,
-                        end: _eventEndDate!,
-                      );
-
-                      // First close the dialog
-                      Navigator.of(dialogContext).pop();
-
-                      // Then perform the state updates
-                      setState(() {
-                        for (var date = event.start; !date.isAfter(event.end); date = date.add(const Duration(days: 1))) {
-                          final key = _normalizeDate(date);
-                          _events.putIfAbsent(key, () => []);
-                          if (!_events[key]!.any((e) => e.title == event.title && e.start == event.start && e.end == event.end)) {
-                            _events[key]!.add(event);
-                          }
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "End: ${(_eventEndDate != null) ? MaterialLocalizations.of(dialogContext).formatShortDate(_eventEndDate!) : 'Select'}",
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    TextButton(
+                      child: const Text("Select"),
+                      onPressed: () async {
+                        final DateTime? picked = await showDatePicker(
+                          context: dialogContext,
+                          initialDate: _eventEndDate ?? _eventStartDate ?? DateTime.now(),
+                          firstDate: _eventStartDate ?? DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (picked != null && picked != _eventEndDate) {
+                          setState(() {
+                            _eventEndDate = picked;
+                          });
                         }
-                        _clearHighlight();
-                        _selectedEvent = event;
-                        _highlightStart = event.start;
-                        _highlightEnd = event.end;
-                        _colorIndex = (_colorIndex + 1) % _highlightColors.length;
-                        _highlightColor = _highlightColors[_colorIndex];
-                      });
-
-                      // Sync to task board
-                      final tasks = await DatabaseService().getTasks();
-                      final lastOrder = tasks
-                          .where((t) => t.column == 'To Do')
-                          .map((t) => t.order)
-                          .fold<int>(-1, (prev, curr) => curr > prev ? curr : prev);
-
-                      final newTask = Task(
-                        title: event.title,
-                        column: 'To Do',
-                        startDate: event.start,
-                        endDate: event.end,
-                        order: lastOrder + 1,
-                      );
-                      await DatabaseService().insertTask(newTask);
-
-                      NotificationService.scheduleTaskNotifications(
-                        id: event.hashCode,
-                        title: event.title,
-                        body: event.description ?? "Task due: ${event.title}",
-                        deadline: event.end,
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary, // Use theme color
-                    foregroundColor: theme.colorScheme.onPrimary, // Use theme color
-                  ),
-                  child: const Text("Add"),
+                      },
+                    ),
+                  ],
                 ),
               ],
-            );
-          },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_titleController.text.isNotEmpty && _eventStartDate != null && _eventEndDate != null) {
+                  final event = Event(
+                    title: _titleController.text,
+                    description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+                    start: _eventStartDate!,
+                    end: _eventEndDate!,
+                  );
+
+                  // First close the dialog
+                  Navigator.of(dialogContext).pop();
+
+                  // Then perform the state updates
+                  setState(() {
+                    for (var date = event.start; !date.isAfter(event.end); date = date.add(const Duration(days: 1))) {
+                      final key = _normalizeDate(date);
+                      _events.putIfAbsent(key, () => []);
+                      if (!_events[key]!.any((e) => e.title == event.title && e.start == event.start && e.end == event.end)) {
+                        _events[key]!.add(event);
+                      }
+                    }
+                    _clearHighlight();
+                    _selectedEvent = event;
+                    _highlightStart = event.start;
+                    _highlightEnd = event.end;
+                    _colorIndex = (_colorIndex + 1) % _highlightColors.length;
+                    _highlightColor = _highlightColors[_colorIndex];
+                  });
+
+                  // Sync to task board
+                  final tasks = await DatabaseService().getTasks();
+                  final lastOrder = tasks
+                      .where((t) => t.column == 'To Do')
+                      .map((t) => t.order)
+                      .fold<int>(-1, (prev, curr) => curr > prev ? curr : prev);
+
+                  final newTask = Task(
+                    title: event.title,
+                    column: 'To Do',
+                    startDate: event.start,
+                    endDate: event.end,
+                    order: lastOrder + 1,
+                  );
+                  await DatabaseService().insertTask(newTask);
+
+                  NotificationService.scheduleTaskNotifications(
+                    id: event.hashCode,
+                    title: event.title,
+                    body: event.description ?? "Task due: ${event.title}",
+                    deadline: event.end,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary, // Use theme color
+                foregroundColor: theme.colorScheme.onPrimary, // Use theme color
+              ),
+              child: const Text("Add"),
+            ),
+          ],
         );
       },
     );
@@ -295,151 +291,147 @@ class _CalendarPageState extends State<CalendarPage> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (stfContext, stfSetState) {
-            return AlertDialog(
-              backgroundColor: theme.dialogBackgroundColor, // Use theme dialog background color
-              title: Text("Edit Event", style: TextStyle(color: theme.textTheme.titleLarge?.color)), // Use theme text color
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    TextField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(hintText: "Event Title"),
+      builder: (BuildContext dialogContext) { // Renamed context to dialogContext
+        return AlertDialog(
+          backgroundColor: Theme.of(context).dialogTheme.backgroundColor, // Updated
+          title: const Text('Edit Event'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(hintText: "Event Title"),
+                ),
+                TextField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(hintText: "Description (Optional)"),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "Start: ${(_eventStartDate != null) ? MaterialLocalizations.of(dialogContext).formatShortDate(_eventStartDate!) : 'Select'}",
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    TextField(
-                      controller: _descriptionController,
-                      decoration: const InputDecoration(hintText: "Description (Optional)"),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "Start: ${(_eventStartDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventStartDate!) : 'Select'}",
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        TextButton(
-                          child: const Text("Select"),
-                          onPressed: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: stfContext,
-                              initialDate: _eventStartDate ?? DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2101),
-                            );
-                            if (picked != null && picked != _eventStartDate) {
-                              stfSetState(() {
-                                _eventStartDate = picked;
-                                if (_eventEndDate != null && _eventEndDate!.isBefore(_eventStartDate!)) {
-                                  _eventEndDate = _eventStartDate;
-                                }
-                              });
+                    TextButton(
+                      child: const Text("Select"),
+                      onPressed: () async {
+                        final DateTime? picked = await showDatePicker(
+                          context: dialogContext,
+                          initialDate: _eventStartDate ?? DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (picked != null && picked != _eventStartDate) {
+                          setState(() {
+                            _eventStartDate = picked;
+                            if (_eventEndDate != null && _eventEndDate!.isBefore(_eventStartDate!)) {
+                              _eventEndDate = _eventStartDate;
                             }
-                          },
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "End: ${(_eventEndDate != null) ? MaterialLocalizations.of(stfContext).formatShortDate(_eventEndDate!) : 'Select'}",
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        TextButton(
-                          child: const Text("Select"),
-                          onPressed: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: stfContext,
-                              initialDate: _eventEndDate ?? _eventStartDate ?? DateTime.now(),
-                              firstDate: _eventStartDate ?? DateTime(2000),
-                              lastDate: DateTime(2101),
-                            );
-                            if (picked != null && picked != _eventEndDate) {
-                              stfSetState(() {
-                                _eventEndDate = picked;
-                              });
-                            }
-                          },
-                        ),
-                      ],
+                          });
+                        }
+                      },
                     ),
                   ],
                 ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text("Cancel"),
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_titleController.text.isNotEmpty && _eventStartDate != null && _eventEndDate != null) {
-                      final updatedEvent = Event(
-                        title: _titleController.text,
-                        description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-                        start: _eventStartDate!,
-                        end: _eventEndDate!,
-                      );
-
-                      // First close the dialog
-                      Navigator.of(dialogContext).pop();
-
-                      // Then perform the state updates
-                      setState(() {
-                        for (var date = originalEvent.start; !date.isAfter(originalEvent.end); date = date.add(const Duration(days: 1))) {
-                          final key = _normalizeDate(date);
-                          _events[key]?.removeWhere((e) =>
-                          e.title == originalEvent.title &&
-                              e.start == originalEvent.start &&
-                              e.end == originalEvent.end);
-                          if (_events[key]?.isEmpty ?? false) {
-                            _events.remove(key);
-                          }
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "End: ${(_eventEndDate != null) ? MaterialLocalizations.of(dialogContext).formatShortDate(_eventEndDate!) : 'Select'}",
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    TextButton(
+                      child: const Text("Select"),
+                      onPressed: () async {
+                        final DateTime? picked = await showDatePicker(
+                          context: dialogContext,
+                          initialDate: _eventEndDate ?? _eventStartDate ?? DateTime.now(),
+                          firstDate: _eventStartDate ?? DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (picked != null && picked != _eventEndDate) {
+                          setState(() {
+                            _eventEndDate = picked;
+                          });
                         }
-
-                        for (var date = updatedEvent.start; !date.isAfter(updatedEvent.end); date = date.add(const Duration(days: 1))) {
-                          final key = _normalizeDate(date);
-                          _events.putIfAbsent(key, () => []);
-                          if (!_events[key]!.any((e) => e.title == updatedEvent.title && e.start == updatedEvent.start && e.end == updatedEvent.end)) {
-                            _events[key]!.add(updatedEvent);
-                          }
-                        }
-
-                        if (_selectedEvent?.title == originalEvent.title &&
-                            _selectedEvent?.start == originalEvent.start &&
-                            _selectedEvent?.end == originalEvent.end) {
-                          _selectedEvent = updatedEvent;
-                          _highlightStart = updatedEvent.start;
-                          _highlightEnd = updatedEvent.end;
-                        } else {
-                          _clearHighlight();
-                        }
-                      });
-
-                      NotificationService.scheduleTaskNotifications(
-                        id: updatedEvent.hashCode,
-                        title: updatedEvent.title,
-                        body: updatedEvent.description ?? "Task due: ${updatedEvent.title}",
-                        deadline: updatedEvent.end,
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary, // Use theme color
-                    foregroundColor: theme.colorScheme.onPrimary, // Use theme color
-                  ),
-                  child: const Text("Save"),
+                      },
+                    ),
+                  ],
                 ),
               ],
-            );
-          },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_titleController.text.isNotEmpty && _eventStartDate != null && _eventEndDate != null) {
+                  final updatedEvent = Event(
+                    title: _titleController.text,
+                    description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+                    start: _eventStartDate!,
+                    end: _eventEndDate!,
+                  );
+
+                  // First close the dialog
+                  Navigator.of(dialogContext).pop();
+
+                  // Then perform the state updates
+                  setState(() {
+                    for (var date = originalEvent.start; !date.isAfter(originalEvent.end); date = date.add(const Duration(days: 1))) {
+                      final key = _normalizeDate(date);
+                      _events[key]?.removeWhere((e) =>
+                      e.title == originalEvent.title &&
+                          e.start == originalEvent.start &&
+                          e.end == originalEvent.end);
+                      if (_events[key]?.isEmpty ?? false) {
+                        _events.remove(key);
+                      }
+                    }
+
+                    for (var date = updatedEvent.start; !date.isAfter(updatedEvent.end); date = date.add(const Duration(days: 1))) {
+                      final key = _normalizeDate(date);
+                      _events.putIfAbsent(key, () => []);
+                      if (!_events[key]!.any((e) => e.title == updatedEvent.title && e.start == updatedEvent.start && e.end == updatedEvent.end)) {
+                        _events[key]!.add(updatedEvent);
+                      }
+                    }
+
+                    if (_selectedEvent?.title == originalEvent.title &&
+                        _selectedEvent?.start == originalEvent.start &&
+                        _selectedEvent?.end == originalEvent.end) {
+                      _selectedEvent = updatedEvent;
+                      _highlightStart = updatedEvent.start;
+                      _highlightEnd = updatedEvent.end;
+                    } else {
+                      _clearHighlight();
+                    }
+                  });
+
+                  NotificationService.scheduleTaskNotifications(
+                    id: updatedEvent.hashCode,
+                    title: updatedEvent.title,
+                    body: updatedEvent.description ?? "Task due: ${updatedEvent.title}",
+                    deadline: updatedEvent.end,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary, // Use theme color
+                foregroundColor: theme.colorScheme.onPrimary, // Use theme color
+              ),
+              child: const Text("Save"),
+            ),
+          ],
         );
       },
     );
@@ -449,44 +441,46 @@ class _CalendarPageState extends State<CalendarPage> {
     final theme = Theme.of(context); // Get theme data
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: theme.dialogBackgroundColor, // Use theme dialog background color
-        title: Text("Delete Event", style: TextStyle(color: theme.textTheme.titleLarge?.color)), // Use theme text color
-        content: Text("Are you sure you want to delete '${event.title}'?", style: TextStyle(color: theme.textTheme.bodyMedium?.color)), // Use theme text color
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel", style: TextStyle(color: theme.colorScheme.primary)), // Use theme color
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              setState(() {
-                for (var date = event.start; !date.isAfter(event.end); date = date.add(const Duration(days: 1))) {
-                  final key = _normalizeDate(date);
-                  _events[key]?.removeWhere((e) =>
-                  e.title == event.title &&
-                      e.start == event.start &&
-                      e.end == event.end);
-                  if (_events[key]?.isEmpty ?? false) {
-                    _events.remove(key);
+      builder: (BuildContext dialogContext) { // Renamed context to dialogContext
+        return AlertDialog(
+          backgroundColor: Theme.of(context).dialogTheme.backgroundColor, // Updated
+          title: const Text('Confirm Delete'),
+          content: Text("Are you sure you want to delete '${event.title}'?", style: TextStyle(color: theme.textTheme.bodyMedium?.color)), // Use theme text color
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel", style: TextStyle(color: theme.colorScheme.primary)), // Use theme color
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                setState(() {
+                  for (var date = event.start; !date.isAfter(event.end); date = date.add(const Duration(days: 1))) {
+                    final key = _normalizeDate(date);
+                    _events[key]?.removeWhere((e) =>
+                    e.title == event.title &&
+                        e.start == event.start &&
+                        e.end == event.end);
+                    if (_events[key]?.isEmpty ?? false) {
+                      _events.remove(key);
+                    }
                   }
-                }
-                if (_selectedEvent == event) {
-                  _clearHighlight();
-                }
-              });
+                  if (_selectedEvent == event) {
+                    _clearHighlight();
+                  }
+                });
 
-              // Also delete from database
-              await DatabaseService().deleteTaskByTitleAndDate(event.title, event.end);
+                // Also delete from database
+                await DatabaseService().deleteTaskByTitleAndDate(event.title, event.end);
 
-              // Cancel any scheduled notifications
-              //NotificationService.cancelNotification(event.hashCode);
-            },
-            child: Text("Delete", style: TextStyle(color: theme.colorScheme.error)), // Use theme error color
-          ),
-        ],
-      ),
+                // Cancel any scheduled notifications
+                //NotificationService.cancelNotification(event.hashCode);
+              },
+              child: Text("Delete", style: TextStyle(color: theme.colorScheme.error)), // Use theme error color
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -602,7 +596,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   margin: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.secondary.withOpacity(0.5), // Use theme color
+                    color: theme.colorScheme.secondary.withAlpha(128), // Use theme color
                     shape: BoxShape.circle,
                   ),
                   child: Text(
@@ -769,7 +763,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 return Card(
                   elevation: 2.0,
                   margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                  color: isSelected ? _highlightColor.withOpacity(0.6) : theme.cardColor, // Use theme card color
+                  color: isSelected ? _highlightColor.withAlpha(153) : theme.cardColor, // Use theme card color
                   child: ListTile(
                     title: Text(event.title, style: TextStyle(fontWeight: FontWeight.w500, color: theme.textTheme.bodyLarge?.color)), // Use theme text color
                     subtitle: Text.rich(
@@ -839,7 +833,7 @@ class _CalendarPageState extends State<CalendarPage> {
         return Card(
           elevation: 2.0,
           margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-          color: isSelected ? _highlightColor.withOpacity(0.6) : theme.cardColor, // Use theme card color
+          color: isSelected ? _highlightColor.withAlpha(153) : theme.cardColor, // Use theme card color
           child: ListTile(
             title: Text(event.title, style: TextStyle(fontWeight: FontWeight.w500, color: theme.textTheme.bodyLarge?.color)), // Use theme text color
             subtitle: Text.rich(

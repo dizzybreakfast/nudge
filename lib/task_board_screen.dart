@@ -170,8 +170,8 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                           onPressed: controller.text.trim().isEmpty
                               ? null
                               : () async {
-                                  print('Add button pressed');
-                                  print('Task title: ${controller.text.trim()}');
+                                  /*print('Add button pressed');*/
+                                  /*print('Task title: ${controller.text.trim()}');*/
                                   final columnTasks = tasks
                                       .where((t) => t.column == 'To Do')
                                       .toList();
@@ -186,17 +186,17 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                                     endDate: endDate,
                                     order: lastOrder + 1,
                                   );
-                                  print('Inserting task: ${task.title}');
+                                  /*print('Inserting task: ${task.title}');*/
                                   try {
                                     await DatabaseService().insertTask(task);
-                                    print('Task inserted');
+                                    /*print('Task inserted');*/
                                     _tasksChanged = true;
+                                    if (!context.mounted) return; // Check mounted before using context
                                     Navigator.of(context).pop(true);
                                     _loadTasks();
-                                  } catch (e, stack) {
-                                    print('Error inserting task: $e');
-                                    print(stack);
-                                    if (context.mounted) {
+                                  } catch (e) { // Removed unused stack trace variable
+                                    /*print('Error inserting task: $e');*/
+                                    if (context.mounted) { // Check mounted before using context
                                       showDialog(
                                         context: context,
                                         builder: (context) => AlertDialog(
@@ -286,10 +286,13 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
     final primaryColor = theme.colorScheme.primary;
     final accentColor = theme.colorScheme.secondary;
 
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.of(context).pop(_tasksChanged);
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) {
+          return;
+        }
+        _showExitConfirmationDialog(context);
       },
       child: Scaffold(
         backgroundColor: backgroundColor,
@@ -366,13 +369,13 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: columnHighlight[columnName]!
-                ? cardColor.withOpacity(0.95)
+                ? cardColor.withAlpha(242) // 0.95 * 255 = 242.25
                 : cardColor,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: borderColor, width: 1),
             boxShadow: [
               BoxShadow(
-                color: theme.shadowColor.withOpacity(0.12), // Use theme shadow color
+                color: theme.shadowColor.withAlpha(31), // Replace withOpacity with withAlpha
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -432,7 +435,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
     final localizations = MaterialLocalizations.of(context);
     final theme = Theme.of(context);
     final textPrimary = theme.textTheme.bodyLarge?.color ?? theme.colorScheme.onSurface;
-    final textSecondary = theme.textTheme.bodyMedium?.color ?? theme.colorScheme.onSurface.withOpacity(0.7);
+    final textSecondary = theme.textTheme.bodyMedium?.color ?? theme.colorScheme.onSurface.withAlpha(178); // 0.7 * 255 = 178.5
     final borderColor = theme.dividerColor;
     final accentColor = theme.colorScheme.secondary;
 
@@ -456,10 +459,10 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
         decoration: BoxDecoration(
           color: theme.cardColor, // Use theme card color
           borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(color: borderColor.withOpacity(0.18), width: 1),
+          border: Border.all(color: borderColor.withAlpha(46), width: 1), // 0.18 * 255 = 45.9
           boxShadow: [
             BoxShadow(
-              color: theme.shadowColor.withOpacity(0.04), // Use theme shadow color
+              color: theme.shadowColor.withAlpha(10), // 0.04 * 255 = 10.2
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -472,7 +475,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
               width: 8,
               height: 40,
               decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.7),
+                color: accentColor.withAlpha(179), // 0.7 * 255 = 178.5
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
@@ -549,7 +552,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      backgroundColor: theme.dialogBackgroundColor, // Use theme dialog background
+                      backgroundColor: theme.dialogTheme.backgroundColor, // Use theme dialog background
                       title: Text('Delete Task', style: TextStyle(color: theme.textTheme.titleLarge?.color)),
                       content: Text('Are you sure you want to delete this task?', style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
                       actions: [
@@ -772,6 +775,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                     // Or replace with the correct update method e.g., DatabaseService().updateTaskDetails(updatedTask);
                     await DatabaseService().insertTask(updatedTask); 
                     _tasksChanged = true;
+                    if (!context.mounted) return; // Check mounted before using context
                     Navigator.of(context).pop(true);
                     _loadTasks();
                   },
@@ -785,6 +789,59 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
               ],
             );
           },
+        );
+      },
+    );
+  }
+
+  void _showExitConfirmationDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final textSecondary = theme.textTheme.bodyMedium?.color ?? Colors.grey;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: theme.cardColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            'Confirm Exit',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+              fontSize: 20,
+            ),
+          ),
+          content: Text(
+            'You have unsaved changes. Do you really want to exit?',
+            style: TextStyle(color: textSecondary),
+          ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel', style: TextStyle(color: textSecondary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.secondary,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(_tasksChanged);
+              },
+              child: Text(
+                'Exit',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSecondary,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

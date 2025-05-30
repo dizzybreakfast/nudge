@@ -17,16 +17,14 @@ class CustomBottomNavWidget extends StatefulWidget {
 class _CustomBottomNavWidgetState extends State<CustomBottomNavWidget> {
   @override
   Widget build(BuildContext context) {
-    // Theme colors from AuthenticationScreen
-    const themeMain = Color(0xff7fb902); // Green color from mockup
-    // const themeLite = Color(0xffdbebb7);
+    final theme = Theme.of(context); // Get theme context
 
     return BottomNavigationBar(
       currentIndex: widget.currentIndex,
       onTap: widget.onTap,
       type: BottomNavigationBarType.fixed, // To ensure all items are visible and have labels
-      selectedItemColor: themeMain, // Active icon/text color
-      unselectedItemColor: Colors.grey, // Inactive icon/text color
+      selectedItemColor: theme.colorScheme.primary, // Use theme color
+      unselectedItemColor: theme.unselectedWidgetColor, // Use theme color for unselected items
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
