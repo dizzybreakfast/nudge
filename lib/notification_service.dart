@@ -93,7 +93,7 @@ class NotificationService {
     AndroidInitializationSettings('@mipmap/ic_launcher'); // Replace with your app icon
 
     // For iOS - you'll also need to request permissions
-    final DarwinInitializationSettings initializationSettingsIOS =
+    const DarwinInitializationSettings initializationSettingsIOS =
     DarwinInitializationSettings(
         requestAlertPermission: true,
         requestBadgePermission: true,

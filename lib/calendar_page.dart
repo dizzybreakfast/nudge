@@ -8,6 +8,7 @@ import 'pomodoro_page.dart';
 import 'services/database.dart';
 import 'models/task.dart';
 import 'notification_service.dart';
+import 'settings_screen.dart'; // Added import for SettingsScreen
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -26,11 +27,11 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime? _highlightEnd;
   Color _highlightColor = Colors.transparent;
   final List<Color> _highlightColors = [
-    Colors.red.withOpacity(0.3),
-    Colors.blue.withOpacity(0.3),
-    Colors.green.withOpacity(0.3),
-    Colors.orange.withOpacity(0.3),
-    Colors.purple.withOpacity(0.3),
+    const Color.fromARGB(77, 244, 67, 54), // Colors.red.withOpacity(0.3)
+    const Color.fromARGB(77, 33, 150, 243), // Colors.blue.withOpacity(0.3)
+    const Color.fromARGB(77, 76, 175, 80), // Colors.green.withOpacity(0.3)
+    const Color.fromARGB(77, 255, 152, 0), // Colors.orange.withOpacity(0.3)
+    const Color.fromARGB(77, 156, 39, 176), // Colors.purple.withOpacity(0.3)
   ];
   int _colorIndex = -1;
 
@@ -129,6 +130,7 @@ class _CalendarPageState extends State<CalendarPage> {
     _descriptionController.clear();
     _eventStartDate = _selectedDay ?? DateTime.now();
     _eventEndDate = _selectedDay ?? DateTime.now();
+    final theme = Theme.of(context); // Get theme data
 
     showDialog(
       context: context,
@@ -136,7 +138,8 @@ class _CalendarPageState extends State<CalendarPage> {
         return StatefulBuilder(
           builder: (stfContext, stfSetState) {
             return AlertDialog(
-              title: const Text("Add New Event"),
+              backgroundColor: theme.dialogBackgroundColor, // Use theme dialog background color
+              title: Text("Add New Event", style: TextStyle(color: theme.textTheme.titleLarge?.color)), // Use theme text color
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -269,8 +272,8 @@ class _CalendarPageState extends State<CalendarPage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
+                    backgroundColor: theme.colorScheme.primary, // Use theme color
+                    foregroundColor: theme.colorScheme.onPrimary, // Use theme color
                   ),
                   child: const Text("Add"),
                 ),
@@ -288,6 +291,7 @@ class _CalendarPageState extends State<CalendarPage> {
     _eventStartDate = eventToEdit.start;
     _eventEndDate = eventToEdit.end;
     final originalEvent = eventToEdit;
+    final theme = Theme.of(context); // Get theme data
 
     showDialog(
       context: context,
@@ -295,7 +299,8 @@ class _CalendarPageState extends State<CalendarPage> {
         return StatefulBuilder(
           builder: (stfContext, stfSetState) {
             return AlertDialog(
-              title: const Text("Edit Event"),
+              backgroundColor: theme.dialogBackgroundColor, // Use theme dialog background color
+              title: Text("Edit Event", style: TextStyle(color: theme.textTheme.titleLarge?.color)), // Use theme text color
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -427,8 +432,8 @@ class _CalendarPageState extends State<CalendarPage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
+                    backgroundColor: theme.colorScheme.primary, // Use theme color
+                    foregroundColor: theme.colorScheme.onPrimary, // Use theme color
                   ),
                   child: const Text("Save"),
                 ),
@@ -441,15 +446,17 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _deleteEvent(Event event) async {
+    final theme = Theme.of(context); // Get theme data
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Event"),
-        content: Text("Are you sure you want to delete '${event.title}'?"),
+        backgroundColor: theme.dialogBackgroundColor, // Use theme dialog background color
+        title: Text("Delete Event", style: TextStyle(color: theme.textTheme.titleLarge?.color)), // Use theme text color
+        content: Text("Are you sure you want to delete '${event.title}'?", style: TextStyle(color: theme.textTheme.bodyMedium?.color)), // Use theme text color
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: Text("Cancel", style: TextStyle(color: theme.colorScheme.primary)), // Use theme color
           ),
           TextButton(
             onPressed: () async {
@@ -476,7 +483,7 @@ class _CalendarPageState extends State<CalendarPage> {
               // Cancel any scheduled notifications
               //NotificationService.cancelNotification(event.hashCode);
             },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+            child: Text("Delete", style: TextStyle(color: theme.colorScheme.error)), // Use theme error color
           ),
         ],
       ),
@@ -512,28 +519,38 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Get theme data
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendar Events'),
-        actions: [
+        title: const Text('Nudge'), // Changed title
+        actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.list_alt),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const TaskBoardScreen()),
-              ).then((tasksChanged) {
-                if (tasksChanged == true) {
-                  _loadTasksFromDb(); 
-                }
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.timer),
+            icon: const Icon(Icons.timer_outlined),
+            tooltip: 'Pomodoro Timer',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const PomodoroPage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.view_kanban_outlined),
+            tooltip: 'Task Board',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TaskBoardScreen()),
+              );
+            },
+          ),
+          IconButton( // Added IconButton for Settings
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
           ),
@@ -565,30 +582,32 @@ class _CalendarPageState extends State<CalendarPage> {
                 return null;
               },
               selectedBuilder: (context, date, focusedDay) {
+                final theme = Theme.of(context); // Get theme data
                 return Container(
                   margin: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColorLight,
+                    color: theme.primaryColorLight,
                     shape: BoxShape.circle,
                   ),
                   child: Text(
                     '${date.day}',
-                    style: TextStyle(color: Theme.of(context).primaryColorDark),
+                    style: TextStyle(color: theme.primaryColorDark),
                   ),
                 );
               },
               todayBuilder: (context, date, focusedDay) {
+                final theme = Theme.of(context); // Get theme data
                 return Container(
                   margin: const EdgeInsets.all(4.0),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.5),
+                    color: theme.colorScheme.secondary.withOpacity(0.5), // Use theme color
                     shape: BoxShape.circle,
                   ),
                   child: Text(
                     '${date.day}',
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: theme.colorScheme.onSecondary), // Use theme color
                   ),
                 );
               },
@@ -657,8 +676,8 @@ class _CalendarPageState extends State<CalendarPage> {
                     _showDailyDeadlinesOnly
                         ? "All Upcoming Deadlines" // MODIFIED Text
                         : "Upcoming Events by Day",
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w500, color: theme.textTheme.titleMedium?.color), // Use theme color
                     overflow: TextOverflow.ellipsis, // Add ellipsis for long text
                   ),
                 ),
@@ -671,7 +690,9 @@ class _CalendarPageState extends State<CalendarPage> {
                   child: Text(
                       _showDailyDeadlinesOnly
                           ? "Show Upcoming by Day" // MODIFIED Text
-                          : "Show All Deadlines"), // MODIFIED Text
+                          : "Show All Deadlines",
+                      style: TextStyle(color: theme.colorScheme.primary), // Use theme color
+                   ),
                 ),
               ],
             ),
@@ -691,17 +712,17 @@ class _CalendarPageState extends State<CalendarPage> {
                   allUpcomingDeadlines.sort((a, b) => a.end.compareTo(b.end)); // Sort by deadline
 
                   if (allUpcomingDeadlines.isEmpty) {
-                    return const Center(
+                    return Center(
                         child: Text(
-                            "No upcoming deadlines to display.")); // MODIFIED Text
+                            "No upcoming deadlines to display.", style: TextStyle(color: theme.textTheme.bodyMedium?.color))); // MODIFIED Text & Use theme color
                   }
                   return _buildDailyDeadlineList(allUpcomingDeadlines);
                 } else {
                   final List<MapEntry<DateTime, List<Event>>>
                   groupedSortedEvents = _getGroupedAndSortedDailyEvents();
                   if (groupedSortedEvents.isEmpty) {
-                    return const Center(
-                        child: Text("No current events to display."));
+                    return Center(
+                        child: Text("No current events to display.", style: TextStyle(color: theme.textTheme.bodyMedium?.color))); // Use theme color
                   }
                   return _buildGroupedEventList(groupedSortedEvents);
                 }
@@ -712,12 +733,14 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddEventDialog,
+        backgroundColor: theme.colorScheme.secondary, // Use theme color
         child: const Icon(Icons.add),
       ),
     );
   }
 
   Widget _buildGroupedEventList(List<MapEntry<DateTime, List<Event>>> groupedSortedEvents) {
+    final theme = Theme.of(context); // Get theme data
     return ListView.builder(
       itemCount: groupedSortedEvents.length, // Number of days with current events
       itemBuilder: (context, dayIndex) {
@@ -732,7 +755,7 @@ class _CalendarPageState extends State<CalendarPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               child: Text(
                 MaterialLocalizations.of(context).formatFullDate(day),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.primary), // Use theme color
               ),
             ),
             ListView.builder(
@@ -746,23 +769,23 @@ class _CalendarPageState extends State<CalendarPage> {
                 return Card(
                   elevation: 2.0,
                   margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                  color: isSelected ? _highlightColor.withOpacity(0.6) : Theme.of(context).cardColor,
+                  color: isSelected ? _highlightColor.withOpacity(0.6) : theme.cardColor, // Use theme card color
                   child: ListTile(
-                    title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w500)),
+                    title: Text(event.title, style: TextStyle(fontWeight: FontWeight.w500, color: theme.textTheme.bodyLarge?.color)), // Use theme text color
                     subtitle: Text.rich(
                       TextSpan(
                         children: [
                           TextSpan(
                             text: "${event.description?.isNotEmpty == true ? event.description : 'No description'}\n",
                             style: TextStyle(
-                              color: Colors.grey[700],
+                              color: theme.textTheme.bodyMedium?.color, // Use theme text color
                               fontStyle: FontStyle.italic,
                             ),
                           ),
                           TextSpan(
                             text: "Deadline: ${MaterialLocalizations.of(context).formatShortDate(event.end)} at ${TimeOfDay.fromDateTime(event.end).format(context)}",
                             style: TextStyle(
-                              color: Colors.grey[700],
+                              color: theme.textTheme.bodyMedium?.color, // Use theme text color
                               fontStyle: FontStyle.normal,
                             ),
                           ),
@@ -784,11 +807,11 @@ class _CalendarPageState extends State<CalendarPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
+                          icon: Icon(Icons.edit, color: theme.colorScheme.primary), // Use theme color
                           onPressed: () => _showEditEventDialog(event),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
+                          icon: Icon(Icons.delete, color: theme.colorScheme.error), // Use theme error color
                           onPressed: () => _deleteEvent(event),
                         ),
                       ],
@@ -807,6 +830,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Widget _buildDailyDeadlineList(List<Event> events) {
     final localizations = MaterialLocalizations.of(context);
+    final theme = Theme.of(context); // Get theme data
     return ListView.builder(
       itemCount: events.length,
       itemBuilder: (context, index) {
@@ -815,23 +839,23 @@ class _CalendarPageState extends State<CalendarPage> {
         return Card(
           elevation: 2.0,
           margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-          color: isSelected ? _highlightColor.withOpacity(0.6) : Theme.of(context).cardColor,
+          color: isSelected ? _highlightColor.withOpacity(0.6) : theme.cardColor, // Use theme card color
           child: ListTile(
-            title: Text(event.title, style: const TextStyle(fontWeight: FontWeight.w500)),
+            title: Text(event.title, style: TextStyle(fontWeight: FontWeight.w500, color: theme.textTheme.bodyLarge?.color)), // Use theme text color
             subtitle: Text.rich(
               TextSpan(
                 children: [
                   TextSpan(
                     text: "Deadline: ${localizations.formatShortDate(event.end)} at ${TimeOfDay.fromDateTime(event.end).format(context)}\n",
                     style: TextStyle(
-                      color: Colors.grey[700],
+                      color: theme.textTheme.bodyMedium?.color, // Use theme text color
                       fontStyle: FontStyle.normal,
                     ),
                   ),
                   TextSpan(
-                    text: "${event.description ?? 'No description'}",
+                    text: event.description ?? 'No description',
                     style: TextStyle(
-                      color: Colors.grey[700],
+                      color: theme.textTheme.bodyMedium?.color, // Use theme text color
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -853,11 +877,11 @@ class _CalendarPageState extends State<CalendarPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
+                  icon: Icon(Icons.edit, color: theme.colorScheme.primary), // Use theme color
                   onPressed: () => _showEditEventDialog(event),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: Icon(Icons.delete, color: theme.colorScheme.error), // Use theme error color
                   onPressed: () => _deleteEvent(event),
                 ),
               ],
@@ -869,11 +893,12 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   Widget _buildEventsMarker(DateTime date, List<Event> events) {
+    final theme = Theme.of(context); // Get theme data
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.blue[400], // Consider making this color dynamic or theme-based
+        color: theme.colorScheme.secondary, // Use theme color
       ),
       width: 16.0,
       height: 16.0,

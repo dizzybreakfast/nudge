@@ -58,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isAdmin = false;
   int _selectedIndex = 0;
   late Widget _signingScreen;
-  late Widget _loadingScreen = SizedBox();
+  late Widget _loadingScreen = const SizedBox();
   late Widget _dashboardScreen = Container();
   late Widget _currentScreen;
   late Account _signedAccount;
@@ -218,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _buildAuthenticationScreen() async {
-    _loadingScreen = LoadingScreen(size: 80.0, color: _themeMain);
+    _loadingScreen = const LoadingScreen(size: 80.0, color: _themeMain);
     _signingScreen = AuthenticationScreen(
       onSignedIn: () {
         setState(() => _isSignedIn = true);

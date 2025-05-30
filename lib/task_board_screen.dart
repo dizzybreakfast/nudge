@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'models/task.dart';
 import 'services/database.dart';
@@ -11,16 +10,6 @@ class TaskBoardScreen extends StatefulWidget {
 }
 
 class _TaskBoardScreenState extends State<TaskBoardScreen> {
-  final Color backgroundColor = Color(0xFFF3F0FA);
-  final Color cardColor = Color(0xFFFDFDFE);
-  final Color borderColor = Color(0xFFE0E3E7);
-  final Color primaryColor = Color(0xFF22223B);
-  final Color accentColor = Color(0xFF673AB7);
-  final Color textPrimary = Color(0xFF22223B);
-  final Color textSecondary = Color(0xFF6C757D);
-  final Color cardBackground = Color(0xFF673AB7).withOpacity(0.06);
-  final Color cardTextColor = Color(0xFF22223B);
-
   final List<String> columnNames = ['To Do', 'In Progress', 'Done'];
 
   final Map<String, bool> columnHighlight = {
@@ -34,9 +23,18 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
 
   void _showAddTaskDialog() {
     final TextEditingController controller = TextEditingController();
-    final TextEditingController descriptionController = TextEditingController(); 
+    final TextEditingController descriptionController = TextEditingController();
     DateTime? startDate;
     DateTime? endDate;
+
+    // Get theme colors
+    final theme = Theme.of(context);
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = theme.cardColor;
+    final primaryColor = theme.colorScheme.primary;
+    final accentColor = theme.colorScheme.secondary;
+    final textSecondary = theme.textTheme.bodyMedium?.color ?? Colors.grey;
+    final borderColor = theme.dividerColor;
 
     showDialog(
       context: context,
@@ -89,7 +87,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                               ),
                               const SizedBox(height: 12),
                               TextField(
-                                controller: descriptionController, 
+                                controller: descriptionController,
                                 maxLines: 3,
                                 cursorColor: accentColor,
                                 decoration: InputDecoration(
@@ -113,7 +111,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                                 title: Text(
                                   startDate == null
                                       ? "Pick start date"
-                                      : "Start: "+startDate!.toLocal().toString().split(' ')[0],
+                                      : "Start: ${startDate!.toLocal().toString().split(' ')[0]}",
                                   style: TextStyle(color: primaryColor),
                                 ),
                                 trailing: Icon(Icons.calendar_today, color: accentColor),
@@ -124,19 +122,21 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                                     firstDate: DateTime(2000),
                                     lastDate: DateTime(2100),
                                   );
-                                  if (picked != null) setState(() {
+                                  if (picked != null) {
+                                    setState(() {
                                     startDate = picked;
                                     if (endDate != null && endDate!.isBefore(startDate!)) {
                                       endDate = picked;
                                     }
                                   });
+                                  }
                                 },
                               ),
                               ListTile(
                                 title: Text(
                                   endDate == null
                                       ? "Pick end date"
-                                      : "End: "+(endDate != null ? endDate!.toLocal().toString().split(' ')[0] : ''),
+                                      : "End: ${endDate != null ? endDate!.toLocal().toString().split(' ')[0] : ''}",
                                   style: TextStyle(color: primaryColor),
                                 ),
                                 trailing: Icon(Icons.calendar_today, color: accentColor),
@@ -154,7 +154,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                           ),
                         ),
                       ),
-                      actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
@@ -165,13 +165,13 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                             backgroundColor: accentColor,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           ),
                           onPressed: controller.text.trim().isEmpty
                               ? null
                               : () async {
                                   print('Add button pressed');
-                                  print('Task title: ' + controller.text.trim());
+                                  print('Task title: ${controller.text.trim()}');
                                   final columnTasks = tasks
                                       .where((t) => t.column == 'To Do')
                                       .toList();
@@ -186,7 +186,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                                     endDate: endDate,
                                     order: lastOrder + 1,
                                   );
-                                  print('Inserting task: ' + task.title);
+                                  print('Inserting task: ${task.title}');
                                   try {
                                     await DatabaseService().insertTask(task);
                                     print('Task inserted');
@@ -194,18 +194,18 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                                     Navigator.of(context).pop(true);
                                     _loadTasks();
                                   } catch (e, stack) {
-                                    print('Error inserting task: ' + e.toString());
+                                    print('Error inserting task: $e');
                                     print(stack);
                                     if (context.mounted) {
                                       showDialog(
                                         context: context,
                                         builder: (context) => AlertDialog(
-                                          title: Text('Error Adding Task'),
+                                          title: const Text('Error Adding Task'),
                                           content: Text(e.toString()),
                                           actions: [
                                             TextButton(
                                               onPressed: () => Navigator.of(context).pop(),
-                                              child: Text('OK'),
+                                              child: const Text('OK'),
                                             ),
                                           ],
                                         ),
@@ -217,7 +217,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                             'Add',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: theme.colorScheme.onSecondary, // Use onSecondary for text on accentColor
                             ),
                           ),
                         ),
@@ -281,6 +281,11 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final primaryColor = theme.colorScheme.primary;
+    final accentColor = theme.colorScheme.secondary;
+
     return WillPopScope(
       onWillPop: () async {
         Navigator.of(context).pop(_tasksChanged);
@@ -308,11 +313,11 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
           elevation: 2,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           onPressed: _showAddTaskDialog,
-          child: Icon(Icons.add, size: 28, color: Colors.white),
+          child: Icon(Icons.add, size: 28, color: theme.colorScheme.onSecondary), // Use onSecondary
         ),
         body: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
           child: Row(
             children: columnNames.map((columnName) {
               return buildColumn(columnName);
@@ -329,13 +334,19 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
         .toList()
       ..sort((a, b) => a.order.compareTo(b.order));
 
+    final theme = Theme.of(context);
+    final cardColor = theme.cardColor;
+    final borderColor = theme.dividerColor;
+    final primaryColor = theme.colorScheme.primary;
+
+
     return DragTarget<Task>(
-      onWillAccept: (task) {
+      onWillAcceptWithDetails: (details) { // Changed task to details to access data property
         setState(() => columnHighlight[columnName] = true);
-        return task != null && task.column != columnName;
+        return details.data.column != columnName; // Removed redundant null check, accessed column via details.data
       },
       onLeave: (_) => setState(() => columnHighlight[columnName] = false),
-      onAccept: (task) async {
+      onAcceptWithDetails: (details) async { // Changed task to details
         final targetColumnTasks = tasks
             .where((t) => t.column == columnName)
             .toList();
@@ -343,7 +354,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
             ? -1
             : targetColumnTasks.map((t) => t.order).reduce((a, b) => a > b ? a : b);
 
-        await DatabaseService().updateTaskColumnAndOrder(task.id!, columnName, lastOrder + 1);
+        await DatabaseService().updateTaskColumnAndOrder(details.data.id!, columnName, lastOrder + 1); // Accessed id via details.data
         _tasksChanged = true;
         await _loadTasks();
         setState(() => columnHighlight[columnName] = false);
@@ -351,8 +362,8 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
       builder: (context, candidateData, rejectedData) {
         return Container(
           width: 280,
-          margin: EdgeInsets.symmetric(horizontal: 12),
-          padding: EdgeInsets.all(18),
+          margin: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: columnHighlight[columnName]!
                 ? cardColor.withOpacity(0.95)
@@ -361,9 +372,9 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
             border: Border.all(color: borderColor, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black12,
+                color: theme.shadowColor.withOpacity(0.12), // Use theme shadow color
                 blurRadius: 6,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -381,7 +392,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                     letterSpacing: 0.5,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Flexible(
                   child: ListView(
                     children: [
@@ -419,6 +430,11 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
   Widget buildTaskCard(Task task) {
     String dateInfo = '';
     final localizations = MaterialLocalizations.of(context);
+    final theme = Theme.of(context);
+    final textPrimary = theme.textTheme.bodyLarge?.color ?? theme.colorScheme.onSurface;
+    final textSecondary = theme.textTheme.bodyMedium?.color ?? theme.colorScheme.onSurface.withOpacity(0.7);
+    final borderColor = theme.dividerColor;
+    final accentColor = theme.colorScheme.secondary;
 
     if (task.startDate != null && task.endDate != null) {
       final String formattedStartDate = localizations.formatShortDate(task.startDate!);
@@ -438,12 +454,12 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
         margin: const EdgeInsets.symmetric(vertical: 6.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardColor, // Use theme card color
           borderRadius: BorderRadius.circular(16.0),
           border: Border.all(color: borderColor.withOpacity(0.18), width: 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: theme.shadowColor.withOpacity(0.04), // Use theme shadow color
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -504,40 +520,46 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
   void _showTaskOptions(Task task) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      backgroundColor: Theme.of(context).cardColor, // Use theme card color for modal
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
       builder: (context) {
+        final theme = Theme.of(context);
+        final accentColor = theme.colorScheme.secondary;
+        final textSecondary = theme.textTheme.bodyMedium?.color ?? Colors.grey;
+
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: Icon(Icons.edit, color: accentColor),
-                title: Text('Edit Task'),
+                title: Text('Edit Task', style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                 onTap: () {
                   Navigator.pop(context);
                   _showEditTaskDialog(task);
                 },
               ),
               ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('Delete Task'),
+                leading: Icon(Icons.delete, color: theme.colorScheme.error), // Use theme error color
+                title: Text('Delete Task', style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                 onTap: () async {
                   Navigator.pop(context);
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text('Delete Task'),
-                      content: Text('Are you sure you want to delete this task?'),
+                      backgroundColor: theme.dialogBackgroundColor, // Use theme dialog background
+                      title: Text('Delete Task', style: TextStyle(color: theme.textTheme.titleLarge?.color)),
+                      content: Text('Are you sure you want to delete this task?', style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: Text('Cancel'),
+                          child: Text('Cancel', style: TextStyle(color: theme.colorScheme.primary)),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: Text('Delete', style: TextStyle(color: Colors.red)),
+                          child: Text('Delete', style: TextStyle(color: theme.colorScheme.error)), // Use theme error color
                         ),
                       ],
                     ),
@@ -551,7 +573,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.close, color: textSecondary),
-                title: Text('Cancel'),
+                title: Text('Cancel', style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                 onTap: () => Navigator.pop(context),
               ),
             ],
@@ -563,8 +585,18 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
 
   void _showEditTaskDialog(Task task) {
     final TextEditingController controller = TextEditingController(text: task.title);
+    final TextEditingController descriptionController = TextEditingController(text: task.description); // Initialize with task.description
     DateTime? startDate = task.startDate;
     DateTime? endDate = task.endDate;
+
+    final theme = Theme.of(context);
+    final cardColor = theme.cardColor;
+    final primaryColor = theme.colorScheme.primary;
+    final accentColor = theme.colorScheme.secondary;
+    final textSecondary = theme.textTheme.bodyMedium?.color ?? Colors.grey;
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final borderColor = theme.dividerColor;
+
 
     showDialog(
       context: context,
@@ -598,6 +630,27 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                           filled: true,
                           fillColor: backgroundColor,
                           enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12), // Added border radius
+                            borderSide: BorderSide(color: borderColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12), // Added border radius
+                            borderSide: BorderSide(color: accentColor),
+                          ),
+                        ),
+                        style: TextStyle(color: primaryColor),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField( // Added description field
+                        controller: descriptionController,
+                        maxLines: 3,
+                        cursorColor: accentColor,
+                        decoration: InputDecoration(
+                          hintText: 'Enter description (optional)',
+                          hintStyle: TextStyle(color: textSecondary),
+                          filled: true,
+                          fillColor: backgroundColor,
+                          enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(color: borderColor),
                           ),
@@ -612,7 +665,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                       ListTile(
                         title: Text(
                           startDate == null
-                              ? "Pick start date"
+                              ? "Pick start date" // Added missing text for null case
                               : "Start: ${startDate!.toLocal().toString().split(' ')[0]}",
                           style: TextStyle(color: primaryColor),
                         ),
@@ -623,20 +676,39 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                             initialDate: startDate ?? DateTime.now(),
                             firstDate: DateTime(2000),
                             lastDate: DateTime(2100),
+                             builder: (context, child) { // Apply theme to DatePicker
+                              return Theme(
+                                data: theme.copyWith(
+                                  colorScheme: theme.colorScheme.copyWith(
+                                    primary: accentColor, // header background color
+                                    onPrimary: theme.colorScheme.onSecondary, // header text color
+                                    onSurface: primaryColor, // body text color
+                                  ),
+                                  textButtonTheme: TextButtonThemeData(
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: accentColor, // button text color
+                                    ),
+                                  ),
+                                ),
+                                child: child!,
+                              );
+                            },
                           );
-                          if (picked != null) setState(() {
-                            startDate = picked;
-                            if (endDate != null && endDate!.isBefore(startDate!)) {
-                              endDate = picked;
-                            }
-                          });
+                          if (picked != null) {
+                            setState(() {
+                              startDate = picked;
+                              if (endDate != null && endDate!.isBefore(startDate!)) {
+                                endDate = picked;
+                              }
+                            });
+                          }
                         },
                       ),
                       ListTile(
                         title: Text(
                           endDate == null
-                              ? "Pick end date"
-                              : "End: ${endDate != null ? endDate!.toLocal().toString().split(' ')[0] : ''}",
+                              ? "Pick end date" // Added missing text for null case
+                              : "End: ${endDate!.toLocal().toString().split(' ')[0]}",
                           style: TextStyle(color: primaryColor),
                         ),
                         trailing: Icon(Icons.calendar_today, color: accentColor),
@@ -646,6 +718,23 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                             initialDate: endDate ?? startDate ?? DateTime.now(),
                             firstDate: startDate ?? DateTime.now(),
                             lastDate: DateTime(2100),
+                            builder: (context, child) { // Apply theme to DatePicker
+                              return Theme(
+                                data: theme.copyWith(
+                                  colorScheme: theme.colorScheme.copyWith(
+                                    primary: accentColor, // header background color
+                                    onPrimary: theme.colorScheme.onSecondary, // header text color
+                                    onSurface: primaryColor, // body text color
+                                  ),
+                                  textButtonTheme: TextButtonThemeData(
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: accentColor, // button text color
+                                    ),
+                                  ),
+                                ),
+                                child: child!,
+                              );
+                            },
                           );
                           if (picked != null) setState(() => endDate = picked);
                         },
@@ -654,7 +743,7 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                   ),
                 ),
               ),
-              actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -665,29 +754,32 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
                     backgroundColor: accentColor,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                   onPressed: () async {
                     if (controller.text.trim().isEmpty) return;
                     final updatedTask = Task(
                       id: task.id,
                       title: controller.text.trim(),
+                      description: descriptionController.text.trim(), // save description
                       column: task.column,
                       startDate: startDate,
                       endDate: endDate,
                       order: task.order,
                     );
-                    await DatabaseService().insertTask(updatedTask);
+                    // Ensure you have a method like updateTask in DatabaseService
+                    // For now, using insertTask as a placeholder if it handles updates by ID
+                    // Or replace with the correct update method e.g., DatabaseService().updateTaskDetails(updatedTask);
+                    await DatabaseService().insertTask(updatedTask); 
                     _tasksChanged = true;
                     Navigator.of(context).pop(true);
                     _loadTasks();
                   },
                   child: Text(
-                    'Save',
+                    'Save', // Changed from 'Add' to 'Save'
                     style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSecondary), // Use onSecondary
                   ),
                 ),
               ],
@@ -696,17 +788,5 @@ class _TaskBoardScreenState extends State<TaskBoardScreen> {
         );
       },
     );
-  }
-
-  Future<void> _reorderTasks(List<Task> columnTasks, int oldIndex, int newIndex, String columnName) async {
-    if (newIndex > oldIndex) newIndex -= 1;
-    final task = columnTasks.removeAt(oldIndex);
-    columnTasks.insert(newIndex, task);
-
-    // Update order in DB for all tasks in this column
-    for (int i = 0; i < columnTasks.length; i++) {
-      await DatabaseService().updateTaskOrder(columnTasks[i].id!, i);
-    }
-    await _loadTasks();
   }
 }

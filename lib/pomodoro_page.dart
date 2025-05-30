@@ -21,7 +21,6 @@ class _PomodoroPageState extends State<PomodoroPage> {
   Timer? _timer;
   bool _isRunning = false;
   bool _isStudyPhase = true;
-  bool _breakPending = false;
 
   @override
   void initState() {
@@ -55,7 +54,6 @@ class _PomodoroPageState extends State<PomodoroPage> {
       _remainingTime = _selectedStudyMinutes * 60;
       _isRunning = true;
       _isStudyPhase = true;
-      _breakPending = false;
     });
 
     _startBackgroundTimer();
@@ -78,7 +76,6 @@ class _PomodoroPageState extends State<PomodoroPage> {
   void _notifyStudyComplete() async {
     setState(() {
       _isRunning = false;
-      _breakPending = true;
     });
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
@@ -116,7 +113,6 @@ class _PomodoroPageState extends State<PomodoroPage> {
     setState(() {
       _remainingTime = _selectedBreakMinutes * 60;
       _isStudyPhase = false;
-      _breakPending = false;
       _isRunning = true;
     });
 
@@ -207,7 +203,6 @@ class _PomodoroPageState extends State<PomodoroPage> {
       _remainingTime = _selectedStudyMinutes * 60;
       _isRunning = false;
       _isStudyPhase = true;
-      _breakPending = false;
     });
     flutterLocalNotificationsPlugin.cancel(0);
     flutterLocalNotificationsPlugin.cancel(1);
